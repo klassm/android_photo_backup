@@ -22,21 +22,19 @@ import org.joda.time.format.DateTimeFormatter
 import java.io.FileDescriptor
 import java.util.*
 
-class SdCardCopier(
-    private val contentResolver: ContentResolver,
-    private val context: Context
-) {
-    fun getFilesToCopy(
+class SdCardCopier(private val context: Context) {
+
+    suspend fun getFilesToCopy(
         source: SdCardDocument.SourceSdCard,
         target: PossibleTargetSdCard
-    ): List<DocumentFile> {
+    ): List<DocumentFile> = withContext(Dispatchers.IO) {
         val allSourceFiles = source.sourceDirectory.listAllFiles()
         val allTargetFiles = when (target) {
             is TargetSdCard -> target.targetDirectory.listAllFiles()
             is UnknownSdCard -> emptyList()
         }
         val allTargetFileNames = allTargetFiles.map { it.name }
-        return allSourceFiles.filterNot { allTargetFileNames.contains(it.name) }
+        allSourceFiles.filterNot { allTargetFileNames.contains(it.name) }
     }
 
     suspend fun copy(
@@ -94,6 +92,9 @@ class SdCardCopier(
             is UnknownSdCard -> target.toTargetSdCard(context).targetDirectory
         }
     }
+
+    private val contentResolver: ContentResolver
+        get() = context.contentResolver
 
     companion object {
         val exifDate: DateTimeFormatter = DateTimeFormat.forPattern("yyyy:MM:dd HH:mm:ss")

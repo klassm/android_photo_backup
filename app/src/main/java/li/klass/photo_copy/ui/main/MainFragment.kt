@@ -23,14 +23,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.MountedVolume
 import li.klass.photo_copy.model.SdCardDocument
 import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard
 import li.klass.photo_copy.model.SdCardDocument.SourceSdCard
 import li.klass.photo_copy.nullableCombineLatest
 import li.klass.photo_copy.service.ExternalStorageHandler
 import li.klass.photo_copy.service.SdCardCopier
-import li.klass.photo_copy.service.SdCardDocumentDivider
 
 class MainFragment : Fragment() {
 
@@ -47,7 +45,7 @@ class MainFragment : Fragment() {
             context ?: return
 
             if (intent.action == RELOAD_SD_CARDS) {
-                queryUsbDevices()
+                updateSdCards()
             }
         }
     }
@@ -71,7 +69,6 @@ class MainFragment : Fragment() {
         super.onPause()
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         data ?: return
@@ -90,7 +87,7 @@ class MainFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        viewModel.externalStorageDrives.observe(this, Observer(::handleExternalStorageChange))
+
         val sdCardSelection = nullableCombineLatest(
             viewModel.selectedSourceCard,
             viewModel.selectedTargetCard
@@ -98,76 +95,71 @@ class MainFragment : Fragment() {
         sdCardSelection.observe(
             this,
             Observer<Pair<SourceSdCard?, PossibleTargetSdCard?>> { (source, target) ->
-                handleSourceTargetChange(source, target)
+                viewModel.handleSourceTargetChange(source, target)
             })
 
+        viewModel.sourceSdCards.observe(this, Observer { sources ->
+            context?.let { context ->
+                sourceCard.adapter = SdCardAdapter(context, sources)
+                sourceCard.onItemSelectedListener =
+                    spinnerListenerFor(sources, viewModel.selectedSourceCard)
+            }
+        })
+
+        viewModel.targetSdCards.observe(this, Observer { targets ->
+            context?.let { context ->
+                targetCard.adapter = SdCardAdapter(context, targets)
+                targetCard.onItemSelectedListener =
+                    spinnerListenerFor(targets, viewModel.selectedTargetCard)
+            }
+        })
+
+        viewModel.externalStorageDrives.observe(this, Observer {
+            viewModel.handleExternalStorageChange(it)
+        })
+
+        viewModel.errorMessage.observe(this, Observer {
+            errorMessage.text = it
+        })
+
+        viewModel.statusImage.observe(this, Observer {
+            statusImage.setImageDrawable(context?.getDrawable(it))
+        })
+
+        nullableCombineLatest(viewModel.startCopyButtonVisible, viewModel.filesToCopy) { a, b -> a to b}
+            .observe(this, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
+                start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
+                if (filesToCopy == null) {
+                    start_copying.isEnabled = false
+                    start_copying.startAnimation()
+                }
+            })
+        viewModel.filesToCopy.observe(this, Observer {
+            if (it != null) {
+                start_copying.revertAnimation {
+                    start_copying.isEnabled = it > 0
+                    start_copying.text = resources.getQuantityString(
+                        R.plurals.start_copying,
+                        it,
+                        it
+                    )
+                }
+            }
+        })
 
         start_copying.setOnClickListener { startCopying() }
 
-        queryUsbDevices()
+        updateSdCards()
     }
 
-    private fun queryUsbDevices() {
+    private fun updateSdCards() {
         val myContext = activity ?: return
         val externalStorageHandler = ExternalStorageHandler(myContext)
         val externalStorage = externalStorageHandler.getExternalVolumes()
-        println(externalStorage)
-        viewModel.selectedTargetCard.value = null
-        viewModel.selectedSourceCard.value = null
+
         viewModel.externalStorageDrives.value = externalStorage.available
         externalStorageHandler.accessIntentsFor(externalStorage)
-            .forEach { startActivityForResult(it, 0)}
-    }
-
-    private fun handleExternalStorageChange(volumes: List<MountedVolume>) {
-        val activity = activity ?: return
-
-        val result = SdCardDocumentDivider(activity).divide(volumes)
-        val sourceCards = result.filterIsInstance<SourceSdCard>()
-        val targetCards = result.filterIsInstance<PossibleTargetSdCard>()
-
-        sourceCard.adapter = SdCardAdapter(activity, sourceCards)
-        targetCard.adapter = SdCardAdapter(activity, targetCards)
-        sourceCard.onItemSelectedListener =
-            spinnerListenerFor(sourceCards, viewModel.selectedSourceCard)
-        targetCard.onItemSelectedListener =
-            spinnerListenerFor(targetCards, viewModel.selectedTargetCard)
-
-        updateImageAndErrorMessage()
-    }
-
-    private fun handleSourceTargetChange(source: SourceSdCard?, target: PossibleTargetSdCard?) {
-        val canCopy = source != null && target != null
-        start_copying.visibility = if (canCopy) View.VISIBLE else View.GONE
-        val activity = activity
-        if (canCopy && activity != null) {
-            val filesToCopy = SdCardCopier(activity.contentResolver, activity)
-                .getFilesToCopy(source!!, target!!)
-            start_copying.text = resources.getQuantityString(
-                R.plurals.start_copying,
-                filesToCopy.size,
-                filesToCopy.size
-            )
-        }
-        updateImageAndErrorMessage()
-    }
-
-    private fun updateImageAndErrorMessage() {
-        val context = activity ?: return
-        if (viewModel.externalStorageDrives.value.isNullOrEmpty()) {
-            statusImage.setImageDrawable(context.getDrawable(R.drawable.ic_cross_red))
-            errorMessage.text = context.getText(R.string.no_sd_cards)
-            return
-        }
-
-        if (viewModel.selectedSourceCard.value == null || viewModel.selectedTargetCard.value == null) {
-            statusImage.setImageDrawable(context.getDrawable(R.drawable.ic_question_answer_blue))
-            errorMessage.text = context.getText(R.string.no_source_or_target)
-            return
-        }
-
-        errorMessage.text = ""
-        statusImage.setImageDrawable(context.getDrawable(R.drawable.ic_check_green))
+            .forEach { startActivityForResult(it, 0) }
     }
 
     private fun <T : SdCardDocument> spinnerListenerFor(
@@ -202,7 +194,7 @@ class MainFragment : Fragment() {
         dialog.show()
 
         GlobalScope.launch {
-            SdCardCopier(activity.contentResolver, activity).copy(
+            SdCardCopier(activity).copy(
                 source,
                 target
             ) { currentIndex: Int, totalAmount: Int, file: DocumentFile ->
@@ -216,7 +208,7 @@ class MainFragment : Fragment() {
             }
             launch(Dispatchers.Main) {
                 dialog.hide()
-                queryUsbDevices()
+                updateSdCards()
             }
         }
     }
