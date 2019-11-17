@@ -12,7 +12,13 @@
         <item quantity="other">Copy %d files</item>
     </plurals>
 
-    <string name="copying_dialog_title">Copying ...</string>
+    <string name="copying_dialog_title">Copying …</string>
     <string name="copying_dialog_current_file">Current file:</string>
     <string name="copying_dialog_current_file_index_separator">of</string>
+
+
+    <string name="settings_activity_title">Settings</string>
+    <string name="settings_verify_md5_hash">Verify MD5 Hash of copied files</string>
+    <string name="settings_verify_md5_hash_summary">Ensures the integrity of copied files - so that you can be sure that the copied files is exactly the same as the source file.</string>
+    <string name="settings_target_directory_name">Target directory name</string>
 </resources>

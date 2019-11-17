@@ -23,7 +23,6 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.MountedVolume
 import li.klass.photo_copy.model.SdCardDocument
@@ -105,7 +104,7 @@ class MainFragment : Fragment() {
 
     private fun updateUI(files: List<MountedVolume>) {
         val activity = activity ?: return
-        val result = SdCardDocumentDivider().divide(files)
+        val result = SdCardDocumentDivider(activity).divide(files)
         val sources = result.filterIsInstance<SdCardDocument.SourceSdCard>()
         update(
             list = sources,
@@ -120,7 +119,8 @@ class MainFragment : Fragment() {
         val canCopy = sources.size == 1 && targets.size == 1
         start_copying.visibility = if (canCopy) View.VISIBLE else View.GONE
         if (canCopy) {
-            val filesToCopy = SdCardCopier(activity.contentResolver).getFilesToCopy(sources[0], targets[0])
+            val filesToCopy = SdCardCopier(activity.contentResolver, activity)
+                .getFilesToCopy(sources[0], targets[0])
             start_copying.text = resources.getQuantityString(
                 R.plurals.start_copying,
                 filesToCopy.size,
@@ -147,11 +147,11 @@ class MainFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     fun startCopying() {
+        val activity = activity ?: return
         val result =
-            SdCardDocumentDivider().divide(viewModel.externalStorageDrives.value ?: emptyList())
+            SdCardDocumentDivider(activity).divide(viewModel.externalStorageDrives.value ?: emptyList())
         val source = result.filterIsInstance<SdCardDocument.SourceSdCard>()[0]
         val target = result.filterIsInstance<SdCardDocument.PossibleTargetSdCard>()[0]
-        val activity = activity ?: return
 
         val view = LayoutInflater.from(activity).inflate(R.layout.copying_progress, null)
         val dialog = AlertDialog.Builder(activity)
@@ -162,7 +162,7 @@ class MainFragment : Fragment() {
         dialog.show()
 
         GlobalScope.launch {
-            SdCardCopier(activity.contentResolver).copy(
+            SdCardCopier(activity.contentResolver, activity).copy(
                 source,
                 target
             ) { currentIndex: Int, totalAmount: Int, file: DocumentFile ->

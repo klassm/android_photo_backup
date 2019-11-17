@@ -1,12 +1,15 @@
 package li.klass.photo_copy.service
 
 import android.content.ContentResolver
+import android.content.Context
 import android.media.ExifInterface
 import android.media.ExifInterface.TAG_DATETIME_ORIGINAL
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import li.klass.photo_copy.Constants.prefVerifyMd5HashOfCopiedFiles
 import li.klass.photo_copy.createDirIfNotExists
 import li.klass.photo_copy.listAllFiles
 import li.klass.photo_copy.md5Hash
@@ -19,7 +22,10 @@ import org.joda.time.format.DateTimeFormatter
 import java.io.FileDescriptor
 import java.util.*
 
-class SdCardCopier(private val contentResolver: ContentResolver) {
+class SdCardCopier(
+    private val contentResolver: ContentResolver,
+    private val context: Context
+) {
     fun getFilesToCopy(
         source: SdCardDocument.SourceSdCard,
         target: PossibleTargetSdCard
@@ -59,7 +65,13 @@ class SdCardCopier(private val contentResolver: ContentResolver) {
             }
         }
 
-        if (contentResolver.md5Hash(toCopy) != contentResolver.md5Hash(newFile)) {
+        val shouldVerifyMd5Hash = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+            prefVerifyMd5HashOfCopiedFiles, true
+        )
+        if (shouldVerifyMd5Hash && contentResolver.md5Hash(toCopy) != contentResolver.md5Hash(
+                newFile
+            )
+        ) {
             Log.e(SdCardCopier::class.java.name, "Deleting ${newFile.uri}, md5 hash did not match")
             newFile.delete()
         }
@@ -79,7 +91,7 @@ class SdCardCopier(private val contentResolver: ContentResolver) {
     private fun getTargetDirectory(target: PossibleTargetSdCard): DocumentFile {
         return when (target) {
             is TargetSdCard -> target.targetDirectory
-            is UnknownSdCard -> target.toTargetSdCard().targetDirectory
+            is UnknownSdCard -> target.toTargetSdCard(context).targetDirectory
         }
     }
 

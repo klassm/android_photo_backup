@@ -6,15 +6,19 @@ import android.os.Bundle
 import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import li.klass.photo_copy.ui.main.MainFragment
-import android.webkit.WebView
 import android.view.MenuItem
+import androidx.preference.PreferenceManager
 import li.klass.photo_copy.ui.main.MainFragment.Companion.RELOAD_SD_CARDS
+import li.klass.photo_copy.ui.settings.SettingsActivity
 
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
+
+        PreferenceManager.setDefaultValues(this, R.xml.root_preferences, false)
+
         if (savedInstanceState == null) {
             loadMainFragment()
         }
@@ -41,6 +45,10 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_refresh) {
             sendBroadcast(Intent(RELOAD_SD_CARDS))
+            return true
+        }
+        if (item.itemId == R.id.action_settings) {
+            startActivity(Intent(this, SettingsActivity::class.java))
             return true
         }
         return super.onOptionsItemSelected(item)
