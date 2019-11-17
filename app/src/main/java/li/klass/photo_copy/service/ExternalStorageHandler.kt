@@ -23,10 +23,6 @@ class ExternalStorageHandler(private val activity: Activity) {
 
     fun getExternalVolumes(): ExternalVolumes {
 
-        val availableRemovableVolumes = storageManager.storageVolumes
-            .filter { it.uuid != null }
-            .filter { it.isRemovable }
-
         val alreadyMountedAndAvailableVolumes = contentResolver.persistedUriPermissions
             .asSequence()
             .filter { it.isReadPermission && it.isWritePermission }
@@ -37,7 +33,7 @@ class ExternalStorageHandler(private val activity: Activity) {
             .map { (file, volume) -> MountedVolume(file, volume!!) }
             .toList()
 
-        val missingVolumes = availableRemovableVolumes.filterNot { volume ->
+        val missingVolumes = removableVolumes().filterNot { volume ->
             alreadyMountedAndAvailableVolumes.any { it.volume == volume }
         }
         return ExternalVolumes(
@@ -66,5 +62,9 @@ class ExternalStorageHandler(private val activity: Activity) {
     }
 
     private fun findVolumeFor(file: DocumentFile): StorageVolume? =
-        storageManager.storageVolumes.find { it.uuid == file.name }!!
+        removableVolumes().find { it.uuid == file.name }
+
+    private fun removableVolumes() = storageManager.storageVolumes
+        .filter { it.uuid != null }
+        .filter { it.isRemovable }
 }

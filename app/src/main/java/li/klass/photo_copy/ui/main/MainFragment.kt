@@ -99,6 +99,7 @@ class MainFragment : Fragment() {
         val myContext = activity ?: return
         val externalStorageHandler = ExternalStorageHandler(myContext)
         val externalStorage = externalStorageHandler.getExternalVolumes()
+        println(externalStorage)
         viewModel.externalStorageDrives.value = externalStorage.available
         externalStorageHandler.requestAccessFor(externalStorage)
     }
