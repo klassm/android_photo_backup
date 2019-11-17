@@ -63,6 +63,7 @@ class MainFragment : Fragment() {
         activity?.registerReceiver(broadcastReceiver, IntentFilter().apply {
             addAction(RELOAD_SD_CARDS)
         })
+        queryUsbDevices()
     }
 
     override fun onPause() {
@@ -176,6 +177,7 @@ class MainFragment : Fragment() {
             }
             launch(Dispatchers.Main) {
                 dialog.hide()
+                queryUsbDevices()
             }
         }
     }

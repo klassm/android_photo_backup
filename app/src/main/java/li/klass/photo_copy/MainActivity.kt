@@ -4,13 +4,12 @@ import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import androidx.appcompat.app.AppCompatActivity
-import li.klass.photo_copy.ui.main.MainFragment
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import li.klass.photo_copy.ui.main.MainFragment
 import li.klass.photo_copy.ui.main.MainFragment.Companion.RELOAD_SD_CARDS
 import li.klass.photo_copy.ui.settings.SettingsActivity
-
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
