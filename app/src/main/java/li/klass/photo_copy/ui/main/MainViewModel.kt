@@ -9,19 +9,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.MountedVolume
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard
-import li.klass.photo_copy.model.SdCardDocument.SourceSdCard
-import li.klass.photo_copy.service.SdCardCopier
-import li.klass.photo_copy.service.SdCardDocumentDivider
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
+import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
+import li.klass.photo_copy.service.ExternalDriveFileCopier
+import li.klass.photo_copy.service.ExternalDriveDocumentDivider
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     val externalStorageDrives: MutableLiveData<List<MountedVolume>> = MutableLiveData()
 
-    val selectedSourceCard: MutableLiveData<SourceSdCard?> = MutableLiveData()
-    val selectedTargetCard: MutableLiveData<PossibleTargetSdCard?> = MutableLiveData()
-    val sourceSdCards: MutableLiveData<List<SourceSdCard>> = MutableLiveData(
+    val selectedSourceDrive: MutableLiveData<SourceExternalDrive?> = MutableLiveData()
+    val selectedTargetDrive: MutableLiveData<PossibleTargetExternalDrive?> = MutableLiveData()
+    val sourceDrives: MutableLiveData<List<SourceExternalDrive>> = MutableLiveData(
         emptyList())
-    val targetSdCards: MutableLiveData<List<PossibleTargetSdCard>> = MutableLiveData(
+    val targetDrives: MutableLiveData<List<PossibleTargetExternalDrive>> = MutableLiveData(
         emptyList())
     val startCopyButtonVisible: MutableLiveData<Boolean> = MutableLiveData(false)
     val filesToCopy: MutableLiveData<Int?> = MutableLiveData(null)
@@ -33,11 +33,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun updateImageAndErrorMessage() {
         if (externalStorageDrives.value.isNullOrEmpty()) {
             statusImage.value = R.drawable.ic_cross_red
-            errorMessage.value = app.getString(R.string.no_sd_cards)
+            errorMessage.value = app.getString(R.string.no_external_drives_cards)
             return
         }
 
-        if (selectedSourceCard.value == null || selectedTargetCard.value == null) {
+        if (selectedSourceDrive.value == null || selectedTargetDrive.value == null) {
             statusImage.value = R.drawable.ic_question_answer_blue
             errorMessage.value = app.getString(R.string.no_source_or_target)
             return
@@ -47,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         statusImage.value = R.drawable.ic_check_green
     }
 
-    fun handleSourceTargetChange(source: SourceSdCard?, target: PossibleTargetSdCard?) {
+    fun handleSourceTargetChange(source: SourceExternalDrive?, target: PossibleTargetExternalDrive?) {
         val canCopy = source != null && target != null
         filesToCopy.value = null
         startCopyButtonVisible.value = canCopy
@@ -56,7 +56,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        SdCardCopier(app)
+                        ExternalDriveFileCopier(app)
                             .getFilesToCopy(source!!, target!!).size
                     }
             }
@@ -66,11 +66,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun handleExternalStorageChange(volumes: List<MountedVolume>) {
-        selectedSourceCard.value = null
-        selectedTargetCard.value = null
-        val result = SdCardDocumentDivider(app).divide(volumes)
-        sourceSdCards.value = result.filterIsInstance<SourceSdCard>()
-        targetSdCards.value = result.filterIsInstance<PossibleTargetSdCard>()
+        selectedSourceDrive.value = null
+        selectedTargetDrive.value = null
+        val result = ExternalDriveDocumentDivider(app).divide(volumes)
+        sourceDrives.value = result.filterIsInstance<SourceExternalDrive>()
+        targetDrives.value = result.filterIsInstance<PossibleTargetExternalDrive>()
         updateImageAndErrorMessage()
     }
 

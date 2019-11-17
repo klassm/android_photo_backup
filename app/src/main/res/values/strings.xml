@@ -17,10 +17,10 @@
     <string name="settings_target_directory_name">Target directory name</string>
     <string name="status_image">status_image</string>
 
-    <string name="source">Source Card</string>
-    <string name="target">Target Card</string>
-    <string name="sdcard_dropdown_space">Free: %s, Used: %s</string>
+    <string name="source">Source Drive</string>
+    <string name="target">Target Drive</string>
+    <string name="external_drive_dropdown_space">Free: %s, Used: %s</string>
 
-    <string name="no_sd_cards">No SD Cards found.</string>
+    <string name="no_external_drives_cards">No external drives found.</string>
     <string name="no_source_or_target">Please select a source and target card.</string>
 </resources>

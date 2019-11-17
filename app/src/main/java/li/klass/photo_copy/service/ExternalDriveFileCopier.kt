@@ -13,33 +13,33 @@ import li.klass.photo_copy.Constants.prefVerifyMd5HashOfCopiedFiles
 import li.klass.photo_copy.createDirIfNotExists
 import li.klass.photo_copy.listAllFiles
 import li.klass.photo_copy.md5Hash
-import li.klass.photo_copy.model.SdCardDocument
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard.TargetSdCard
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard.UnknownSdCard
+import li.klass.photo_copy.model.ExternalDriveDocument
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive.TargetExternalDrive
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive.UnknownExternalDrive
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import java.io.FileDescriptor
 import java.util.*
 
-class SdCardCopier(private val context: Context) {
+class ExternalDriveFileCopier(private val context: Context) {
 
     suspend fun getFilesToCopy(
-        source: SdCardDocument.SourceSdCard,
-        target: PossibleTargetSdCard
+        source: ExternalDriveDocument.SourceExternalDrive,
+        target: PossibleTargetExternalDrive
     ): List<DocumentFile> = withContext(Dispatchers.IO) {
         val allSourceFiles = source.sourceDirectory.listAllFiles()
         val allTargetFiles = when (target) {
-            is TargetSdCard -> target.targetDirectory.listAllFiles()
-            is UnknownSdCard -> emptyList()
+            is TargetExternalDrive -> target.targetDirectory.listAllFiles()
+            is UnknownExternalDrive -> emptyList()
         }
         val allTargetFileNames = allTargetFiles.map { it.name }
         allSourceFiles.filterNot { allTargetFileNames.contains(it.name) }
     }
 
     suspend fun copy(
-        source: SdCardDocument.SourceSdCard,
-        target: PossibleTargetSdCard,
+        source: ExternalDriveDocument.SourceExternalDrive,
+        target: PossibleTargetExternalDrive,
         onUpdate: (currentIndex: Int, totalIndex: Int, currentFile: DocumentFile) -> Unit
     ) = withContext(Dispatchers.IO) {
         val targetFile = getTargetDirectory(target)
@@ -70,7 +70,7 @@ class SdCardCopier(private val context: Context) {
                 newFile
             )
         ) {
-            Log.e(SdCardCopier::class.java.name, "Deleting ${newFile.uri}, md5 hash did not match")
+            Log.e(ExternalDriveFileCopier::class.java.name, "Deleting ${newFile.uri}, md5 hash did not match")
             newFile.delete()
         }
     }
@@ -86,10 +86,10 @@ class SdCardCopier(private val context: Context) {
         } ?: "unknown"
     }
 
-    private fun getTargetDirectory(target: PossibleTargetSdCard): DocumentFile {
+    private fun getTargetDirectory(target: PossibleTargetExternalDrive): DocumentFile {
         return when (target) {
-            is TargetSdCard -> target.targetDirectory
-            is UnknownSdCard -> target.toTargetSdCard(context).targetDirectory
+            is TargetExternalDrive -> target.targetDirectory
+            is UnknownExternalDrive -> target.toTargetDrive(context).targetDirectory
         }
     }
 

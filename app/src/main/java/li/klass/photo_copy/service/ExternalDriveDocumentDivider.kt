@@ -4,12 +4,12 @@ import android.content.Context
 import androidx.preference.PreferenceManager
 import li.klass.photo_copy.Constants
 import li.klass.photo_copy.model.MountedVolume
-import li.klass.photo_copy.model.SdCardDocument
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard.TargetSdCard
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard.UnknownSdCard
+import li.klass.photo_copy.model.ExternalDriveDocument
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive.TargetExternalDrive
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive.UnknownExternalDrive
 
-class SdCardDocumentDivider(private val context: Context) {
-    fun divide(volumes: List<MountedVolume>): List<SdCardDocument> {
+class ExternalDriveDocumentDivider(private val context: Context) {
+    fun divide(volumes: List<MountedVolume>): List<ExternalDriveDocument> {
         return volumes.map { volume ->
             val targetDirectoryName = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(Constants.prefTargetDirectoryName, "backup")!!
@@ -18,9 +18,9 @@ class SdCardDocumentDivider(private val context: Context) {
             val targetDirectory = directories.find { it.name == targetDirectoryName }
 
             when {
-                dcimDirectory != null -> SdCardDocument.SourceSdCard(dcimDirectory, volume)
-                targetDirectory != null -> TargetSdCard(targetDirectory, volume)
-                else -> UnknownSdCard(volume)
+                dcimDirectory != null -> ExternalDriveDocument.SourceExternalDrive(dcimDirectory, volume)
+                targetDirectory != null -> TargetExternalDrive(targetDirectory, volume)
+                else -> UnknownExternalDrive(volume)
             }
         }
     }

@@ -5,11 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import kotlinx.android.synthetic.main.sdcard_dropdown_item.view.*
+import kotlinx.android.synthetic.main.external_drive_dropdown_item.view.*
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.SdCardDocument
+import li.klass.photo_copy.model.ExternalDriveDocument
 
-class SdCardAdapter<T : SdCardDocument>(
+class ExternalDriveAdapter<T : ExternalDriveDocument>(
     private val context: Context,
     private val objects: List<T>
 ) : BaseAdapter() {
@@ -22,7 +22,7 @@ class SdCardAdapter<T : SdCardDocument>(
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = getItem(position)
         val view = convertView ?: LayoutInflater.from(context).inflate(
-            R.layout.sdcard_dropdown_item,
+            R.layout.external_drive_dropdown_item,
             parent,
             false
         )
@@ -37,7 +37,7 @@ class SdCardAdapter<T : SdCardDocument>(
     private fun spaceTextFor(item: T): String {
         val stats = item.volume.stats
         return context.getString(
-            R.string.sdcard_dropdown_space,
+            R.string.external_drive_dropdown_space,
             sizeTextFor(stats.availableBytes), sizeTextFor(stats.usedBytes)
         )
     }

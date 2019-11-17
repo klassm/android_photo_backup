@@ -23,12 +23,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.SdCardDocument
-import li.klass.photo_copy.model.SdCardDocument.PossibleTargetSdCard
-import li.klass.photo_copy.model.SdCardDocument.SourceSdCard
+import li.klass.photo_copy.model.ExternalDriveDocument
+import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
+import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
 import li.klass.photo_copy.nullableCombineLatest
 import li.klass.photo_copy.service.ExternalStorageHandler
-import li.klass.photo_copy.service.SdCardCopier
+import li.klass.photo_copy.service.ExternalDriveFileCopier
 
 class MainFragment : Fragment() {
 
@@ -45,7 +45,7 @@ class MainFragment : Fragment() {
             context ?: return
 
             if (intent.action == RELOAD_SD_CARDS) {
-                updateSdCards()
+                updateDrives()
             }
         }
     }
@@ -88,29 +88,29 @@ class MainFragment : Fragment() {
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
-        val sdCardSelection = nullableCombineLatest(
-            viewModel.selectedSourceCard,
-            viewModel.selectedTargetCard
+        nullableCombineLatest(
+            viewModel.selectedSourceDrive,
+            viewModel.selectedTargetDrive
         ) { source, target -> source to target }
-        sdCardSelection.observe(
-            this,
-            Observer<Pair<SourceSdCard?, PossibleTargetSdCard?>> { (source, target) ->
-                viewModel.handleSourceTargetChange(source, target)
-            })
+            .observe(
+                this,
+                Observer<Pair<SourceExternalDrive?, PossibleTargetExternalDrive?>> { (source, target) ->
+                    viewModel.handleSourceTargetChange(source, target)
+                })
 
-        viewModel.sourceSdCards.observe(this, Observer { sources ->
+        viewModel.sourceDrives.observe(this, Observer { sources ->
             context?.let { context ->
-                sourceCard.adapter = SdCardAdapter(context, sources)
+                sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 sourceCard.onItemSelectedListener =
-                    spinnerListenerFor(sources, viewModel.selectedSourceCard)
+                    spinnerListenerFor(sources, viewModel.selectedSourceDrive)
             }
         })
 
-        viewModel.targetSdCards.observe(this, Observer { targets ->
+        viewModel.targetDrives.observe(this, Observer { targets ->
             context?.let { context ->
-                targetCard.adapter = SdCardAdapter(context, targets)
+                targetCard.adapter = ExternalDriveAdapter(context, targets)
                 targetCard.onItemSelectedListener =
-                    spinnerListenerFor(targets, viewModel.selectedTargetCard)
+                    spinnerListenerFor(targets, viewModel.selectedTargetDrive)
             }
         })
 
@@ -126,7 +126,10 @@ class MainFragment : Fragment() {
             statusImage.setImageDrawable(context?.getDrawable(it))
         })
 
-        nullableCombineLatest(viewModel.startCopyButtonVisible, viewModel.filesToCopy) { a, b -> a to b}
+        nullableCombineLatest(
+            viewModel.startCopyButtonVisible,
+            viewModel.filesToCopy
+        ) { a, b -> a to b }
             .observe(this, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
                 start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
                 if (filesToCopy == null) {
@@ -149,10 +152,10 @@ class MainFragment : Fragment() {
 
         start_copying.setOnClickListener { startCopying() }
 
-        updateSdCards()
+        updateDrives()
     }
 
-    private fun updateSdCards() {
+    private fun updateDrives() {
         val myContext = activity ?: return
         val externalStorageHandler = ExternalStorageHandler(myContext)
         val externalStorage = externalStorageHandler.getExternalVolumes()
@@ -162,7 +165,7 @@ class MainFragment : Fragment() {
             .forEach { startActivityForResult(it, 0) }
     }
 
-    private fun <T : SdCardDocument> spinnerListenerFor(
+    private fun <T : ExternalDriveDocument> spinnerListenerFor(
         items: List<T>, toUpdate: MutableLiveData<T?>
     ) = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(
@@ -182,8 +185,8 @@ class MainFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     fun startCopying() {
         val activity = activity ?: return
-        val source = viewModel.selectedSourceCard.value ?: return
-        val target = viewModel.selectedTargetCard.value ?: return
+        val source = viewModel.selectedSourceDrive.value ?: return
+        val target = viewModel.selectedTargetDrive.value ?: return
 
         val view = LayoutInflater.from(activity).inflate(R.layout.copying_progress, null)
         val dialog = AlertDialog.Builder(activity)
@@ -194,7 +197,7 @@ class MainFragment : Fragment() {
         dialog.show()
 
         GlobalScope.launch {
-            SdCardCopier(activity).copy(
+            ExternalDriveFileCopier(activity).copy(
                 source,
                 target
             ) { currentIndex: Int, totalAmount: Int, file: DocumentFile ->
@@ -208,7 +211,7 @@ class MainFragment : Fragment() {
             }
             launch(Dispatchers.Main) {
                 dialog.hide()
-                updateSdCards()
+                updateDrives()
             }
         }
     }
