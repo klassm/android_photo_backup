@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Photo Copy</string>
+    <string name="source_caption">Source Cards</string>
+    <string name="target_caption">Target Cards</string>
+    <string name="source_image">sourceImage</string>
+    <string name="target_image">targetImage</string>
+    <string name="no_external_devices">No content found</string>
+    <string name="refresh">Refresh</string>
+    <plurals name="start_copying">
+        <item quantity="one">Copy %d file</item>
+        <item quantity="zero">No files to copy</item>
+        <item quantity="other">Copy %d files</item>
+    </plurals>
+
+    <string name="copying_dialog_title">Copying ...</string>
+    <string name="copying_dialog_current_file">Current file:</string>
+    <string name="copying_dialog_current_file_index_separator">of</string>
+</resources>
