@@ -12,9 +12,7 @@ import li.klass.photo_copy.model.MountedVolume
 data class ExternalVolumes(
     val available: List<MountedVolume>,
     val missing: List<StorageVolume>
-) {
-
-}
+)
 
 class ExternalStorageHandler(private val activity: Activity) {
     private val storageManager =
