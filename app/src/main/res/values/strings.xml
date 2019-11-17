@@ -1,10 +1,5 @@
 <resources>
     <string name="app_name">Photo Copy</string>
-    <string name="source_caption">Source Cards</string>
-    <string name="target_caption">Target Cards</string>
-    <string name="source_image">sourceImage</string>
-    <string name="target_image">targetImage</string>
-    <string name="no_external_devices">No content found</string>
     <string name="refresh">Refresh</string>
     <plurals name="start_copying">
         <item quantity="one">Copy %d file</item>
@@ -16,9 +11,16 @@
     <string name="copying_dialog_current_file">Current file:</string>
     <string name="copying_dialog_current_file_index_separator">of</string>
 
-
     <string name="settings_activity_title">Settings</string>
     <string name="settings_verify_md5_hash">Verify MD5 Hash of copied files</string>
     <string name="settings_verify_md5_hash_summary">Ensures the integrity of copied files - so that you can be sure that the copied files is exactly the same as the source file.</string>
     <string name="settings_target_directory_name">Target directory name</string>
+    <string name="status_image">status_image</string>
+
+    <string name="source">Source Card</string>
+    <string name="target">Target Card</string>
+    <string name="sdcard_dropdown_space">Free: %s, Used: %s</string>
+
+    <string name="no_sd_cards">No SD Cards found.</string>
+    <string name="no_source_or_target">Please select a source and target card.</string>
 </resources>

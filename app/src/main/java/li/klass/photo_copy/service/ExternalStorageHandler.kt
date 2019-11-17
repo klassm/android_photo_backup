@@ -3,11 +3,15 @@ package li.klass.photo_copy.service
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.StatFs
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
+import android.system.Os.fstatvfs
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import li.klass.photo_copy.model.MountedVolume
+import li.klass.photo_copy.volumeStats
+import java.util.*
 
 data class ExternalVolumes(
     val available: List<MountedVolume>,
@@ -20,7 +24,6 @@ class ExternalStorageHandler(private val activity: Activity) {
     private val contentResolver = activity.contentResolver!!
 
     fun getExternalVolumes(): ExternalVolumes {
-
         val alreadyMountedAndAvailableVolumes = contentResolver.persistedUriPermissions
             .asSequence()
             .filter { it.isReadPermission && it.isWritePermission }
@@ -28,24 +31,21 @@ class ExternalStorageHandler(private val activity: Activity) {
             .filterNotNull()
             .map { it to findVolumeFor(it) }
             .filter { (_, volume) -> volume != null }
-            .map { (file, volume) -> MountedVolume(file, volume!!) }
+            .map { (file, volume) -> mountedVolumeFor(file, volume!!) }
             .toList()
 
         val missingVolumes = removableVolumes().filterNot { volume ->
             alreadyMountedAndAvailableVolumes.any { it.volume == volume }
         }
+
         return ExternalVolumes(
             available = alreadyMountedAndAvailableVolumes,
             missing = missingVolumes
         )
     }
 
-    fun requestAccessFor(externalVolumes: ExternalVolumes) {
-        externalVolumes.missing
-            .forEach {
-                activity.startActivityForResult(it.createOpenDocumentTreeIntent(), 1)
-            }
-    }
+    fun accessIntentsFor(externalVolumes: ExternalVolumes) =
+        externalVolumes.missing.map { it.createOpenDocumentTreeIntent() }
 
     fun onAccessGranted(uri: Uri): MountedVolume? {
         activity.contentResolver?.apply {
@@ -56,7 +56,7 @@ class ExternalStorageHandler(private val activity: Activity) {
         val documentFile = DocumentFile.fromTreeUri(activity, uri) ?: return null
         val volume = findVolumeFor(documentFile)
 
-        return volume?.let { MountedVolume(documentFile, it) }
+        return volume?.let { mountedVolumeFor(documentFile, it) }
     }
 
     private fun findVolumeFor(file: DocumentFile): StorageVolume? =
@@ -65,4 +65,7 @@ class ExternalStorageHandler(private val activity: Activity) {
     private fun removableVolumes() = storageManager.storageVolumes
         .filter { it.uuid != null }
         .filter { it.isRemovable }
+
+    private fun mountedVolumeFor(file: DocumentFile, volume: StorageVolume) =
+        MountedVolume(file, volume, contentResolver.volumeStats(file))
 }
