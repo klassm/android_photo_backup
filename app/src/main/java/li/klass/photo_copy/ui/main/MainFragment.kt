@@ -1,7 +1,6 @@
 package li.klass.photo_copy.ui.main
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,23 +11,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import kotlinx.android.synthetic.main.copying_progress.view.*
 import kotlinx.android.synthetic.main.main_fragment.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.ExternalDriveDocument
 import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
 import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
 import li.klass.photo_copy.nullableCombineLatest
 import li.klass.photo_copy.service.ExternalStorageHandler
-import li.klass.photo_copy.service.ExternalDriveFileCopier
+import li.klass.photo_copy.ui.copy.CopyProgressFragment
 
 class MainFragment : Fragment() {
 
@@ -184,36 +178,12 @@ class MainFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     fun startCopying() {
-        val activity = activity ?: return
         val source = viewModel.selectedSourceDrive.value ?: return
         val target = viewModel.selectedTargetDrive.value ?: return
-
-        val view = LayoutInflater.from(activity).inflate(R.layout.copying_progress, null)
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.copying_dialog_title)
-            .setView(view)
-            .setCancelable(false)
-            .create()
-        dialog.show()
-
-        GlobalScope.launch {
-            ExternalDriveFileCopier(activity).copy(
-                source,
-                target
-            ) { currentIndex: Int, totalAmount: Int, file: DocumentFile ->
-                launch(Dispatchers.Main) {
-                    val progress = ((currentIndex / totalAmount.toFloat()) * 100).toInt()
-                    view.progress.setProgress(progress, true)
-                    view.current_file.text = file.name
-                    view.current_file_index.text = "${currentIndex + 1}"
-                    view.total_file_index.text = "$totalAmount"
-                }
-            }
-            launch(Dispatchers.Main) {
-                dialog.hide()
-                updateDrives()
-            }
-        }
+        activity?.supportFragmentManager?.beginTransaction()
+            ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target))
+            ?.addToBackStack(null)
+            ?.commit()
     }
 }
 

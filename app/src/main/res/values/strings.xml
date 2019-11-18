@@ -23,4 +23,5 @@
 
     <string name="no_external_drives_cards">No external drives found.</string>
     <string name="no_source_or_target">Please select a source and target card.</string>
+    <string name="back">Back</string>
 </resources>

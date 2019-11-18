@@ -5,8 +5,9 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import li.klass.photo_copy.Constants
 import li.klass.photo_copy.createDirIfNotExists
+import java.io.Serializable
 
-sealed class ExternalDriveDocument {
+sealed class ExternalDriveDocument: Serializable {
     abstract val volume: MountedVolume
 
     data class SourceExternalDrive(val sourceDirectory: DocumentFile, override val volume: MountedVolume) :
