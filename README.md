@@ -1,6 +1,8 @@
 Photo Copy
 ============
 
+![](https://github.com/klassm/android_photo_backup/workflows/Android%20CI/badge.svg)
+
 Android App copying photos from one external drive to another. This is intended
 as photo backup (i.e. on vacation) to make sure you don't loose any photos when
 a SD-Card breaks.
