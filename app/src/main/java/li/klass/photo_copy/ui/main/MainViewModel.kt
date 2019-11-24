@@ -37,6 +37,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        if (sourceDrives.value.isNullOrEmpty()) {
+            statusImage.value = R.drawable.ic_cross_red
+            errorMessage.value = app.getString(R.string.no_source_drives_found)
+            return
+        }
+
+        if (targetDrives.value.isNullOrEmpty()) {
+            statusImage.value = R.drawable.ic_cross_red
+            errorMessage.value = app.getString(R.string.no_target_drives_found)
+            return
+        }
+
         if (selectedSourceDrive.value == null || selectedTargetDrive.value == null) {
             statusImage.value = R.drawable.ic_question_answer_blue
             errorMessage.value = app.getString(R.string.no_source_or_target)

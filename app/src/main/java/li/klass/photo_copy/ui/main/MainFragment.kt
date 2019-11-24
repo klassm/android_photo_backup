@@ -88,8 +88,19 @@ class MainFragment : Fragment() {
         ) { source, target -> source to target }
             .observe(
                 this,
-                Observer<Pair<SourceExternalDrive?, PossibleTargetExternalDrive?>> { (source, target) ->
+                Observer { (source, target) ->
                     viewModel.handleSourceTargetChange(source, target)
+                })
+
+        nullableCombineLatest(
+            viewModel.sourceDrives,
+            viewModel.targetDrives
+        ) { source, target -> source to target }
+            .observe(
+                this,
+                Observer { (source, target) ->
+                    val visible = source?.size ?: 0 > 0 && target?.size ?: 0 > 0
+                    selectSourceTarget.visibility = if (visible) View.VISIBLE else View.GONE
                 })
 
         viewModel.sourceDrives.observe(this, Observer { sources ->
