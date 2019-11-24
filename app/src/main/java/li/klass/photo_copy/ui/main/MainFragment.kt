@@ -1,6 +1,7 @@
 package li.klass.photo_copy.ui.main
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -18,8 +19,6 @@ import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.ExternalDriveDocument
-import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
-import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
 import li.klass.photo_copy.nullableCombineLatest
 import li.klass.photo_copy.service.ExternalStorageHandler
 import li.klass.photo_copy.ui.copy.CopyProgressFragment
@@ -164,10 +163,27 @@ class MainFragment : Fragment() {
         val myContext = activity ?: return
         val externalStorageHandler = ExternalStorageHandler(myContext)
         val externalStorage = externalStorageHandler.getExternalVolumes()
+        val requestAccess = {
+            externalStorageHandler.accessIntentsFor(externalStorage)
+                .forEach { startActivityForResult(it, 0) }
+        }
 
         viewModel.externalStorageDrives.value = externalStorage.available
-        externalStorageHandler.accessIntentsFor(externalStorage)
-            .forEach { startActivityForResult(it, 0) }
+        if (externalStorage.missing.isEmpty()) {
+            return
+        }
+
+        if (viewModel.didUserAlreadySeeExternalDriveAccessInfo()) {
+            requestAccess()
+        } else {
+            AlertDialog.Builder(context)
+                .setMessage(R.string.external_drive_access_content)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    viewModel.userSawExternalDriveAccessInfo()
+                    requestAccess()
+                }
+                .show()
+        }
     }
 
     private fun <T : ExternalDriveDocument> spinnerListenerFor(

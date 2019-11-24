@@ -1,12 +1,15 @@
 package li.klass.photo_copy.ui.main
 
 import android.app.Application
+import android.content.SharedPreferences
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import li.klass.photo_copy.Constants.prefDidUserSeeExternalAccessInfoMessage
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.MountedVolume
 import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
@@ -85,6 +88,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         targetDrives.value = result.filterIsInstance<PossibleTargetExternalDrive>()
         updateImageAndErrorMessage()
     }
+
+    fun didUserAlreadySeeExternalDriveAccessInfo(): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(app)
+            .getBoolean(prefDidUserSeeExternalAccessInfoMessage, false)
+
+    fun userSawExternalDriveAccessInfo() =
+        PreferenceManager.getDefaultSharedPreferences(app)
+            .edit().putBoolean(prefDidUserSeeExternalAccessInfoMessage, true).apply()
 
     private val app: Application
         get() = getApplication()

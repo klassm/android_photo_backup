@@ -30,4 +30,7 @@
     <string name="copy_error_could_not_copy">Could not copy.</string>
     <string name="copy_error_integrity_check_failed">Could not copy - Integrity check failed.</string>
     <string name="copy_error_unknown_error">An unknown error occurred.</string>
+
+    <string name="external_drive_access_content">The app needs access to SD-Cards to check what to copy. Please grant access on the following dialog(s).</string>
+    <string name="ok">OK</string>
 </resources>
