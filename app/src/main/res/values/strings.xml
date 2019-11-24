@@ -24,4 +24,8 @@
     <string name="no_external_drives_cards">No external drives found.</string>
     <string name="no_source_or_target">Please select a source and target card.</string>
     <string name="back">Back</string>
+
+    <string name="copy_error_could_not_copy">Could not copy.</string>
+    <string name="copy_error_integrity_check_failed">Could not copy - Integrity check failed.</string>
+    <string name="copy_error_unknown_error">An unknown error occurred.</string>
 </resources>

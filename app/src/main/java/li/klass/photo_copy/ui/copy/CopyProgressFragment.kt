@@ -31,19 +31,23 @@ class CopyProgressFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        val copyFileResultAdapter = context?.let { CopyFileResultAdapter(it, emptyList()) }
+        file_progress_list.adapter = copyFileResultAdapter
 
-        viewModel.copyProgress.observe(this, Observer {
-            if (it != null) {
-                progress.setProgress(it.progress, true)
-                current_file.text = it.currentFile
-                current_file_index.text = (it.currentIndex + 1).toString()
-                total_file_index.text = it.totalAmount.toString()
+        viewModel.copyProgress.observe(this, Observer { copyProgress ->
+            if (copyProgress != null) {
+                progress.setProgress(copyProgress.progress, true)
+                current_file_index.text = copyProgress.currentIndex.toString()
+                total_file_index.text = copyProgress.totalAmount.toString()
                 back.visibility =
-                    if (it.currentIndex + 1 == it.totalAmount) View.VISIBLE else View.GONE
+                    if (copyProgress.currentIndex == copyProgress.totalAmount) View.VISIBLE else View.GONE
+                copyFileResultAdapter?.objects = copyProgress.results.sortedBy { it.date }.reversed()
                 progress_data.visibility = View.VISIBLE
+                file_progress_list.visibility = View.VISIBLE
             } else {
                 back.visibility = View.GONE
                 progress_data.visibility = View.GONE
+                file_progress_list.visibility = View.GONE
             }
         })
 
