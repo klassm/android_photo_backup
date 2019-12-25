@@ -32,8 +32,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
     val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
 
-
-    fun updateImageAndErrorMessage() {
+    private fun updateImageAndErrorMessage() {
         if (externalStorageDrives.value.isNullOrEmpty()) {
             statusImage.value = R.drawable.ic_cross_red
             errorMessage.value = app.getString(R.string.no_external_drives_cards)
