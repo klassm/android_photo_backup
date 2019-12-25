@@ -58,3 +58,6 @@ fun <X, T, Z> nullableCombineLatest(first: LiveData<X?>, second: LiveData<T?>, c
     }
     return finalLiveData
 }
+
+val DocumentFile.extension: String get() =
+    (name ?: "").split(".").last().toUpperCase(Locale.getDefault())

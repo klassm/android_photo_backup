@@ -14,6 +14,8 @@
     <string name="settings_activity_title">Settings</string>
     <string name="settings_verify_md5_hash">Verify MD5 Hash of copied files</string>
     <string name="settings_verify_md5_hash_summary">Ensures the integrity of copied files - so that you can be sure that the copied files is exactly the same as the source file.</string>
+    <string name="settings_extract_jpg_from_nef">Extract JPG from NEF files</string>
+    <string name="settings_extract_jpg_from_nef_summary">NEF files contain a full-quality embedded JPG. This can be extracted while copying.</string>
     <string name="settings_target_directory_name">Target directory name</string>
     <string name="status_image">status_image</string>
 
@@ -29,6 +31,10 @@
 
     <string name="copy_error_could_not_copy">Could not copy.</string>
     <string name="copy_error_integrity_check_failed">Could not copy - Integrity check failed.</string>
+    <string name="copy_error_target_file_creation_failed">Could not copy - Could not create target file.</string>
+    <string name="copy_error_jpg_could_not_read_nef_input_file">Could no extract JPG - Could not read input file.</string>
+    <string name="copy_error_jpg_could_not_extract_jpg_from_nef">Could no extract JPG - Could not extract JPG from NEF.</string>
+    <string name="copy_error_jpg_target_file_creation_for_nef_failed">Could not extract JPG - could not create target file.</string>
     <string name="copy_error_unknown_error">An unknown error occurred.</string>
 
     <string name="external_drive_access_content">The app needs access to SD-Cards to check what to copy. Please grant access on the following dialog(s).</string>

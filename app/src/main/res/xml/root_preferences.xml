@@ -22,6 +22,12 @@
         app:title="@string/settings_verify_md5_hash"
         app:summary="@string/settings_verify_md5_hash_summary"/>
 
+    <SwitchPreferenceCompat
+        app:key="pref_extract_jpg_from_nef"
+        app:defaultValue="true"
+        app:title="@string/settings_extract_jpg_from_nef"
+        app:summary="@string/settings_extract_jpg_from_nef_summary"/>
+
     <EditTextPreference
         app:key="pref_target_directory_name"
         app:title="@string/settings_target_directory_name"
