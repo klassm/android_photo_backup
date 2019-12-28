@@ -84,22 +84,18 @@ class MainFragment : Fragment() {
                     viewModel.handleSourceTargetChange(source, target)
                 })
 
-        nullableCombineLatest(
-            viewModel.sourceContainers,
-            viewModel.targetContainers
-        ) { source, target -> source to target }
-            .observe(
-                this,
-                Observer { (source, target) ->
-                    val visible = source?.size ?: 0 > 0 && target?.size ?: 0 > 0
-                    selectSourceTarget.visibility = if (visible) View.VISIBLE else View.GONE
-                })
-
         viewModel.sourceContainers.observe(this, Observer { sources ->
             context?.let { context ->
                 sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 sourceCard.onItemSelectedListener =
                     spinnerListenerFor(sources, viewModel.selectedSourceDrive)
+                if (sources.isEmpty()) {
+                    sourceCard.visibility = View.GONE
+                    sourceCardEmpty.visibility = View.VISIBLE
+                } else {
+                    sourceCard.visibility = View.VISIBLE
+                    sourceCardEmpty.visibility = View.GONE
+                }
             }
         })
 
@@ -108,6 +104,13 @@ class MainFragment : Fragment() {
                 targetCard.adapter = ExternalDriveAdapter(context, targets)
                 targetCard.onItemSelectedListener =
                     spinnerListenerFor(targets, viewModel.selectedTargetDrive)
+                if (targets.isEmpty()) {
+                    targetCard.visibility = View.GONE
+                    targetCardEmpty.visibility = View.VISIBLE
+                } else {
+                    targetCard.visibility = View.VISIBLE
+                    targetCardEmpty.visibility = View.GONE
+                }
             }
         })
 

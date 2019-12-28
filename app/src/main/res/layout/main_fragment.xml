@@ -47,17 +47,26 @@
             android:id="@+id/sourceCard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/sourceCardEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_source_drives_found"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/target"
             style="@style/selectionCategory"/>
-
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/targetCard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/targetCardEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_target_drives_found"/>
     </LinearLayout>
 
     <br.com.simplepass.loadingbutton.customViews.CircularProgressButton

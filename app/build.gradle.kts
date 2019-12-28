@@ -42,7 +42,7 @@ android {
     }
 
     lintOptions {
-        setLintConfig(File("android-lint.xml"))
+        setLintConfig(file("android-lint.xml"))
     }
 }
 
