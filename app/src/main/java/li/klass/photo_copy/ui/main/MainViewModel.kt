@@ -113,7 +113,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             val dataVolumes = withContext(Dispatchers.IO) {
-                DataVolumesProvider(app, PtpService()).getDataVolumes()
+                DataVolumesProvider(app).getDataVolumes()
             }
             allVolumes.value = (allVolumes.value ?: emptyList()) + dataVolumes.available
             missingExternalDrives.value = dataVolumes.missingExternalDrives
@@ -148,7 +148,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private val dataVolumesProvider = DataVolumesProvider(app, PtpService())
+    private val dataVolumesProvider = DataVolumesProvider(app)
 
     private val app: Application
         get() = getApplication()

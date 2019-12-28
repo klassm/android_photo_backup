@@ -5,7 +5,6 @@ import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.model.DataVolume
 import li.klass.photo_copy.model.DataVolume.MountedVolume
 import li.klass.photo_copy.volumeStats
@@ -15,7 +14,7 @@ data class DataVolumes(
     val missingExternalDrives: List<StorageVolume>
 )
 
-class DataVolumesProvider(private val context: Context, private val ptpService: PtpService) {
+class DataVolumesProvider(private val context: Context) {
     private val storageManager =
         ContextCompat.getSystemService(context, StorageManager::class.java)!!
     private val contentResolver = context.contentResolver!!
