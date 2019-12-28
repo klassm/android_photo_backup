@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import li.klass.photo_copy.Constants.prefDidUserSeeExternalAccessInfoMessage
 import li.klass.photo_copy.R
 import li.klass.photo_copy.files.FilesToCopyProvider
-import li.klass.photo_copy.files.TargetFileCreator
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.usb.ExternalDriveDocumentDivider
 import li.klass.photo_copy.files.usb.UsbService
@@ -78,14 +77,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         if (canCopy) {
             viewModelScope.launch {
-                val targetDirectory =
-                    TargetFileCreator(UsbService(app.contentResolver), app).getTargetDirectory(
-                        target!!
-                    )
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
                         FilesToCopyProvider(UsbService(app.contentResolver), PtpService())
-                            .calculateFilesToCopy(targetDirectory, source!!).size
+                            .calculateFilesToCopy(target!!, source!!).size
                     }
             }
         }

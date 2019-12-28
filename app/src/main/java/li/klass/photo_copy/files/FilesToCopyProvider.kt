@@ -7,10 +7,22 @@ import li.klass.photo_copy.listAllFiles
 import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.model.FileContainer.SourceContainer.SourceExternalDrive
 import li.klass.photo_copy.model.FileContainer.SourceContainer.SourcePtp
+import li.klass.photo_copy.model.FileContainer.TargetContainer.TargetExternalDrive
 
 class FilesToCopyProvider(private val usbService: UsbService, private val ptpService: PtpService) {
     fun calculateFilesToCopy(
-        targetDirectory: DocumentFile,
+        target: FileContainer.TargetContainer,
+        source: FileContainer.SourceContainer
+    ): Collection<CopyableFile> {
+        val targetDirectory = when(target) {
+            is TargetExternalDrive -> target.targetDirectory
+            else -> null
+        }
+        return calculateFilesToCopy(targetDirectory, source)
+    }
+
+    fun calculateFilesToCopy(
+        targetDirectory: DocumentFile?,
         source: FileContainer.SourceContainer
     ): Collection<CopyableFile> {
         val copyableFiles = when (source) {
@@ -18,7 +30,7 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpSer
             is SourcePtp -> ptpService.getAvailableFiles()
         }?: emptyList()
 
-        val allTargetFiles = targetDirectory.listAllFiles()
+        val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
         val allTargetFileNames = allTargetFiles.map { it.name }
         return copyableFiles.filterNot { allTargetFileNames.contains(it.filename) }
     }
