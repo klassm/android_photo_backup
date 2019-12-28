@@ -25,7 +25,7 @@ class ExternalDriveDocumentDivider(private val context: Context) {
         val targetDirectory = directories.find { it.name == targetDirectoryName }
 
         return when {
-            dcimDirectory != null -> SourceExternalDrive(dcimDirectory, volume)
+            dcimDirectory != null && volume.volume.isRemovable -> SourceExternalDrive(dcimDirectory, volume)
             targetDirectory != null -> TargetExternalDrive(targetDirectory, volume)
             else -> UnknownExternalDrive(volume)
         }

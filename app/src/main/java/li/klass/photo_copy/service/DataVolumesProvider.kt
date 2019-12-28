@@ -25,6 +25,7 @@ class DataVolumesProvider(private val context: Context) {
             .asSequence()
             .filter { it.isReadPermission && it.isWritePermission }
             .map { DocumentFile.fromTreeUri(context, it.uri) }
+            .filter { it?.name != null }
             .filterNotNull()
             .map { it to findVolumeFor(it) }
             .filter { (_, volume) -> volume != null }
@@ -39,12 +40,16 @@ class DataVolumesProvider(private val context: Context) {
         )
     }
 
-    fun findVolumeFor(file: DocumentFile): StorageVolume? =
-        removableVolumes().find { it.uuid == file.name }
+    fun findVolumeFor(file: DocumentFile): StorageVolume? {
+        val removableVolumes = removableVolumes()
+        if(file.uri.path?.startsWith("/tree/primary") == true) {
+            return removableVolumes.find { !it.isRemovable }
+        }
+
+        return removableVolumes.find { it.uuid == file.name }
+    }
 
     private fun removableVolumes() = storageManager.storageVolumes
-        .filter { it.uuid != null }
-        .filter { it.isRemovable }
 
     fun mountedVolumeFor(file: DocumentFile, volume: StorageVolume) =
         MountedVolume(file, volume, contentResolver.volumeStats(file))
