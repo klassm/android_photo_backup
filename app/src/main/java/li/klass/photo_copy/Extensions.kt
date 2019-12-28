@@ -5,7 +5,7 @@ import android.system.Os
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import li.klass.photo_copy.model.StorageVolumeStats
+import li.klass.photo_copy.model.MountedVolumeStats
 import java.security.MessageDigest
 import java.util.*
 
@@ -25,10 +25,10 @@ fun ContentResolver.md5Hash(documentFile: DocumentFile): String {
     return String(md5.digest()).toUpperCase(Locale.getDefault())
 }
 
-fun ContentResolver.volumeStats(documentFile: DocumentFile): StorageVolumeStats {
+fun ContentResolver.volumeStats(documentFile: DocumentFile): MountedVolumeStats {
     val stats = Os.fstatvfs(openFileDescriptor(documentFile.uri, "r")?.fileDescriptor)
 
-    return StorageVolumeStats(
+    return MountedVolumeStats(
         totalBytes = stats.f_blocks * stats.f_frsize,
         availableBytes = stats.f_bavail * stats.f_frsize
     )

@@ -2,17 +2,19 @@ package li.klass.photo_copy.ui.copy
 
 import android.app.Application
 import android.content.Intent
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
-import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
+import li.klass.photo_copy.files.*
+import li.klass.photo_copy.files.ptp.PtpService
+import li.klass.photo_copy.files.usb.UsbService
+import li.klass.photo_copy.model.FileContainer.SourceContainer
+import li.klass.photo_copy.model.FileContainer.TargetContainer
+import li.klass.photo_copy.service.Copier
 import li.klass.photo_copy.service.CopyListener
 import li.klass.photo_copy.service.CopyResult
-import li.klass.photo_copy.service.ExternalDriveFileCopier
 import li.klass.photo_copy.ui.main.MainFragment.Companion.RELOAD_SD_CARDS
 import org.joda.time.DateTime
 
@@ -31,8 +33,8 @@ data class CopyProgress(
 }
 
 class CopyProgressViewModel(application: Application) : AndroidViewModel(application) {
-    lateinit var source: SourceExternalDrive
-    lateinit var target: PossibleTargetExternalDrive
+    lateinit var source: SourceContainer
+    lateinit var target: TargetContainer
     val copyProgress: MutableLiveData<CopyProgress?> = MutableLiveData(null)
 
     fun startCopying() {
@@ -42,7 +44,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
                 override fun onFileFinished(
                     copiedFileIndex: Int,
                     totalNumberOfFiles: Int,
-                    copiedFile: DocumentFile,
+                    copiedFile: CopyableFile,
                     copyResult: CopyResult
                 ) {
                     launch(Dispatchers.Main) {
@@ -50,7 +52,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
                         copyProgress.value = CopyProgress(
                             copiedFileIndex,
                             totalNumberOfFiles,
-                            oldResults + FileResult(copiedFile.name ?: "???", copyResult)
+                            oldResults + FileResult(copiedFile.filename, copyResult)
                         )
                     }
                 }
@@ -63,11 +65,33 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
             }
 
             launch(Dispatchers.IO) {
-                ExternalDriveFileCopier(app).copy(source, target, listener)
+                copier.copy(source, target, listener)
             }
             app.sendBroadcast(Intent(RELOAD_SD_CARDS))
         }
     }
+
+    private val copier: Copier
+        get() {
+            val usbService = UsbService(app.contentResolver)
+            val ptpService = PtpService()
+            val targetFileCreator = TargetFileCreator(usbService, app)
+            val fileCopier = FileCopier(
+                app.contentResolver,
+                ptpService,
+                targetFileCreator
+            )
+            val filesToCopyProvider = FilesToCopyProvider(usbService, ptpService)
+            val jpgFromNefExtractor = JpgFromNefExtractor(targetFileCreator, app)
+
+            return Copier(
+                context = app,
+                fileCopier = fileCopier,
+                filesToCopyProvider = filesToCopyProvider,
+                jpgFromNefExtractor = jpgFromNefExtractor,
+                targetFileCreator = targetFileCreator
+            )
+        }
 
     private val app: Application
         get() = getApplication()

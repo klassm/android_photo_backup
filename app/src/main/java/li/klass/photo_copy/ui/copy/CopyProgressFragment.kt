@@ -9,8 +9,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.copying_progress.*
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.ExternalDriveDocument.PossibleTargetExternalDrive
-import li.klass.photo_copy.model.ExternalDriveDocument.SourceExternalDrive
+import li.klass.photo_copy.model.FileContainer.*
+import javax.xml.transform.Source
 
 class CopyProgressFragment : Fragment() {
     private lateinit var viewModel: CopyProgressViewModel
@@ -20,8 +20,8 @@ class CopyProgressFragment : Fragment() {
         val args = arguments ?: Bundle()
         viewModel = ViewModelProviders.of(this).get(CopyProgressViewModel::class.java)
         viewModel.apply {
-            source = args.get("source") as SourceExternalDrive
-            target = args.get("target") as PossibleTargetExternalDrive
+            source = args.get("source") as SourceContainer
+            target = args.get("target") as TargetContainer
         }
     }
 
@@ -60,8 +60,8 @@ class CopyProgressFragment : Fragment() {
 
     companion object {
         fun newInstance(
-            source: SourceExternalDrive,
-            target: PossibleTargetExternalDrive
+            source: SourceContainer,
+            target: TargetContainer
         ): CopyProgressFragment =
             CopyProgressFragment().apply {
                 arguments = Bundle().apply {

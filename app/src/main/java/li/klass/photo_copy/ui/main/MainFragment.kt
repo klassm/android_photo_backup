@@ -18,9 +18,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.ExternalDriveDocument
+import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.nullableCombineLatest
-import li.klass.photo_copy.service.ExternalStorageHandler
 import li.klass.photo_copy.ui.copy.CopyProgressFragment
 
 class MainFragment : Fragment() {
@@ -38,7 +37,7 @@ class MainFragment : Fragment() {
             context ?: return
 
             if (intent.action == RELOAD_SD_CARDS) {
-                updateDrives()
+                viewModel.updateDataVolumes()
             }
         }
     }
@@ -65,15 +64,9 @@ class MainFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         data ?: return
-        val activity = activity ?: return
-        val externalStorageHandler = ExternalStorageHandler(activity)
 
         val treeUri: Uri = data.data as Uri
-        val mountedVolume = externalStorageHandler.onAccessGranted(treeUri)
-        if (mountedVolume != null) {
-            val list = viewModel.externalStorageDrives.value ?: emptyList()
-            viewModel.externalStorageDrives.value = list + mountedVolume
-        }
+        viewModel.onAccessGranted(treeUri)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -92,8 +85,8 @@ class MainFragment : Fragment() {
                 })
 
         nullableCombineLatest(
-            viewModel.sourceDrives,
-            viewModel.targetDrives
+            viewModel.sourceContainers,
+            viewModel.targetContainers
         ) { source, target -> source to target }
             .observe(
                 this,
@@ -102,7 +95,7 @@ class MainFragment : Fragment() {
                     selectSourceTarget.visibility = if (visible) View.VISIBLE else View.GONE
                 })
 
-        viewModel.sourceDrives.observe(this, Observer { sources ->
+        viewModel.sourceContainers.observe(this, Observer { sources ->
             context?.let { context ->
                 sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 sourceCard.onItemSelectedListener =
@@ -110,7 +103,7 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.targetDrives.observe(this, Observer { targets ->
+        viewModel.targetContainers.observe(this, Observer { targets ->
             context?.let { context ->
                 targetCard.adapter = ExternalDriveAdapter(context, targets)
                 targetCard.onItemSelectedListener =
@@ -118,8 +111,10 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.externalStorageDrives.observe(this, Observer {
-            viewModel.handleExternalStorageChange(it)
+        viewModel.allVolumes.observe(this, Observer {
+            if (it != null) {
+                viewModel.handleExternalStorageChange(it)
+            }
         })
 
         viewModel.errorMessage.observe(this, Observer {
@@ -154,39 +149,33 @@ class MainFragment : Fragment() {
             }
         })
 
+        viewModel.missingExternalDrives
+            .observe(this, Observer {missing ->
+                if (missing != null && missing.isNotEmpty()) {
+                    val requestAccess = {
+                        viewModel.accessIntentsFor(missing)
+                            .forEach { startActivityForResult(it, 0) }
+                    }
+                    if (viewModel.didUserAlreadySeeExternalDriveAccessInfo()) {
+                        requestAccess()
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setMessage(R.string.external_drive_access_content)
+                            .setPositiveButton(R.string.ok) { _, _ ->
+                                viewModel.userSawExternalDriveAccessInfo()
+                                requestAccess()
+                            }
+                            .show()
+                    }
+                }
+            })
+
         start_copying.setOnClickListener { startCopying() }
 
-        updateDrives()
+        viewModel.updateDataVolumes()
     }
 
-    private fun updateDrives() {
-        val myContext = activity ?: return
-        val externalStorageHandler = ExternalStorageHandler(myContext)
-        val externalStorage = externalStorageHandler.getExternalVolumes()
-        val requestAccess = {
-            externalStorageHandler.accessIntentsFor(externalStorage)
-                .forEach { startActivityForResult(it, 0) }
-        }
-
-        viewModel.externalStorageDrives.value = externalStorage.available
-        if (externalStorage.missing.isEmpty()) {
-            return
-        }
-
-        if (viewModel.didUserAlreadySeeExternalDriveAccessInfo()) {
-            requestAccess()
-        } else {
-            AlertDialog.Builder(context)
-                .setMessage(R.string.external_drive_access_content)
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    viewModel.userSawExternalDriveAccessInfo()
-                    requestAccess()
-                }
-                .show()
-        }
-    }
-
-    private fun <T : ExternalDriveDocument> spinnerListenerFor(
+    private fun <T : FileContainer> spinnerListenerFor(
         items: List<T>, toUpdate: MutableLiveData<T?>
     ) = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(
