@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.os.storage.StorageVolume
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -74,6 +75,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val canCopy = source != null && target != null
         filesToCopy.value = null
         startCopyButtonVisible.value = canCopy
+
+        Log.i(logTag,"handleSourceTargetChange(source=$source, target=$target)")
 
         if (canCopy) {
             viewModelScope.launch {
@@ -152,4 +155,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val app: Application
         get() = getApplication()
+
+    companion object {
+        private val logTag = MainViewModel::class.java.name
+    }
 }

@@ -1,5 +1,6 @@
 package li.klass.photo_copy.files
 
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.usb.UsbService
@@ -14,7 +15,7 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpSer
         target: FileContainer.TargetContainer,
         source: FileContainer.SourceContainer
     ): Collection<CopyableFile> {
-        val targetDirectory = when(target) {
+        val targetDirectory = when (target) {
             is TargetExternalDrive -> target.targetDirectory
             else -> null
         }
@@ -28,10 +29,22 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpSer
         val copyableFiles = when (source) {
             is SourceExternalDrive -> usbService.listFiles(source)
             is SourcePtp -> ptpService.getAvailableFiles()
-        }?: emptyList()
-
+        } ?: emptyList()
         val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
         val allTargetFileNames = allTargetFiles.map { it.name }
-        return copyableFiles.filterNot { allTargetFileNames.contains(it.filename) }
+        val toCopy = copyableFiles.filterNot { allTargetFileNames.contains(it.filename) }
+
+        Log.i(
+            logTag,
+            "calculateFilesToCopy - targetDirectory=${targetDirectory?.uri?.path}" +
+                    "\r\ncopyableFiles: " + copyableFiles.joinToString(separator = ",") { it.filename } +
+                    "\r\nexisting files:" + allTargetFileNames.size +
+                    "\r\ntoCopy: " + toCopy.joinToString(separator = ",") { it.filename })
+
+        return toCopy
+    }
+
+    companion object {
+        private val logTag = FilesToCopyProvider::class.java.name
     }
 }
