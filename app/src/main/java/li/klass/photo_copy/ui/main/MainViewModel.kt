@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import arrow.core.extensions.list.functorFilter.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,13 +21,15 @@ import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.usb.ExternalDriveDocumentDivider
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.DataVolume
+import li.klass.photo_copy.model.DataVolume.MountedVolume
+import li.klass.photo_copy.model.DataVolume.PtpVolume
 import li.klass.photo_copy.model.FileContainer.SourceContainer
 import li.klass.photo_copy.model.FileContainer.TargetContainer
 import li.klass.photo_copy.service.DataVolumesProvider
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    val allVolumes: MutableLiveData<List<DataVolume>> = MutableLiveData()
-    val missingExternalDrives: MutableLiveData<List<StorageVolume>> = MutableLiveData()
+    val allVolumes: MutableLiveData<List<DataVolume>> = MutableLiveData(emptyList())
+    val missingExternalDrives: MutableLiveData<List<StorageVolume>> = MutableLiveData(emptyList())
 
     val selectedSourceDrive: MutableLiveData<SourceContainer?> = MutableLiveData()
     val selectedTargetDrive: MutableLiveData<TargetContainer?> = MutableLiveData()
@@ -49,18 +52,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        if (sourceContainers.value.isNullOrEmpty()) {
-            statusImage.value = R.drawable.ic_cross_red
-            errorMessage.value = app.getString(R.string.no_source_drives_found)
-            return
-        }
-
-        if (targetContainers.value.isNullOrEmpty()) {
-            statusImage.value = R.drawable.ic_cross_red
-            errorMessage.value = app.getString(R.string.no_target_drives_found)
-            return
-        }
-
         if (selectedSourceDrive.value == null || selectedTargetDrive.value == null) {
             statusImage.value = R.drawable.ic_question_answer_blue
             errorMessage.value = app.getString(R.string.no_source_or_target)
@@ -76,7 +67,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         filesToCopy.value = null
         startCopyButtonVisible.value = canCopy
 
-        Log.i(logTag,"handleSourceTargetChange(source=$source, target=$target)")
+        Log.i(logTag, "handleSourceTargetChange(source=$source, target=$target)")
 
         if (canCopy) {
             viewModelScope.launch {
@@ -92,11 +83,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun handleExternalStorageChange(volumes: List<DataVolume>) {
-        selectedSourceDrive.value = null
-        selectedTargetDrive.value = null
+        val sortedVolumes = volumes.sortedWith(
+            compareBy({ it is PtpVolume }, { it is MountedVolume && it.volume.isRemovable })
+        ).reversed()
         val result = ExternalDriveDocumentDivider(
             app
-        ).divide(volumes)
+        ).divide(sortedVolumes)
         sourceContainers.value = result.filterIsInstance<SourceContainer>()
         targetContainers.value = result.filterIsInstance<TargetContainer>()
         updateImageAndErrorMessage()
@@ -112,21 +104,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateDataVolumes() {
         allVolumes.value = null
-        missingExternalDrives.value = null
 
         viewModelScope.launch {
             val dataVolumes = withContext(Dispatchers.IO) {
                 DataVolumesProvider(app).getDataVolumes()
             }
-            allVolumes.value = (allVolumes.value ?: emptyList()) + dataVolumes.available
+            allVolumes.value = (allVolumes.value ?: emptyList())
+                .filter { it is PtpVolume } + dataVolumes.available
             missingExternalDrives.value = dataVolumes.missingExternalDrives
         }
         viewModelScope.launch {
             val ptpVolume = withContext(Dispatchers.IO) {
-                PtpService().getDeviceInformation()?.let { DataVolume.PtpVolume(it) }
+                PtpService().getDeviceInformation()?.let { PtpVolume(it) }
             }
-            ptpVolume?.let {
-                allVolumes.value = (allVolumes.value ?: emptyList()) + it
+            ptpVolume?.let { volume ->
+                allVolumes.value = (allVolumes.value ?: emptyList())
+                    .filterNot { it is PtpVolume } + volume
             }
         }
     }

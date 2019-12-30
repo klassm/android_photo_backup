@@ -24,7 +24,7 @@
     <string name="external_drive_dropdown_space">Free: %s, Used: %s</string>
 
     <string name="no_external_drives_cards">No external drives found.</string>
-    <string name="no_source_drives_found">No source drives were found. Currently a source drive must have a a \"DCIM\" folder.</string>
+    <string name="no_source_drives_found">No source drives were found. Currently a source drive either must have a \"DCIM\" folder or must be attached via PTP.</string>
     <string name="no_target_drives_found">No target drives were found.</string>
     <string name="no_source_or_target">Please select a source and target card.</string>
     <string name="back">Back</string>
