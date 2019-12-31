@@ -28,7 +28,7 @@ android {
     buildToolsVersion("29.0.2")
     defaultConfig {
         applicationId = "li.klass.photo_copy"
-        minSdkVersion(28)
+        minSdkVersion(29)
         targetSdkVersion(29)
         versionCode = 1
         versionName = "1.0"
