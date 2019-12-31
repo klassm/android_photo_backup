@@ -6,6 +6,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import li.klass.photo_copy.model.MountedVolumeStats
+import java.lang.IllegalStateException
 import java.security.MessageDigest
 import java.util.*
 
@@ -15,7 +16,7 @@ fun DocumentFile.listAllFiles(): List<DocumentFile> =
 
 fun DocumentFile.createDirIfNotExists(dirName: String): DocumentFile {
     return listFiles().find { it.isDirectory && it.name == dirName }
-        ?: createDirectory(dirName)!!
+        ?: createDirectory(dirName) ?: throw IllegalStateException("cannot create directory $dirName")
 }
 
 fun ContentResolver.md5Hash(documentFile: DocumentFile): String {

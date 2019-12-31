@@ -22,10 +22,12 @@ class TargetFileCreator(
         extension: String = inFile.extension
     ): DocumentFile? {
         val baseDir = targetRoot.createDirIfNotExists(extension)
-        val targetDirectory = baseDir.createDirIfNotExists(getCaptureDateFor(inFile))
+        val captureDate = getCaptureDateFor(inFile)
+        val targetDirectory = baseDir.createDirIfNotExists(captureDate)
         val targetFileName = if (inFile.extension != extension) inFile.filename + ".$extension" else inFile.filename
+        val mimeType = if(extension == inFile.extension) inFile.mimeType else mimeTypeFor(extension)
 
-        return targetDirectory.createFile(inFile.mimeType, targetFileName)
+        return targetDirectory.createFile(mimeType, targetFileName)
     }
 
     fun getTargetDirectory(target: FileContainer.TargetContainer): DocumentFile {

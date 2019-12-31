@@ -63,7 +63,7 @@ object PtpConnectionSingleton {
                 function(it)
             }
         } catch(e: Exception) {
-            Log.e(logTag, "runConnected - could not execute command", e)
+            Log.i(logTag, "runConnected - could not execute command", e)
             null
         }
     }
