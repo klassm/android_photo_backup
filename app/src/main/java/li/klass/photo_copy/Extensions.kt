@@ -1,6 +1,8 @@
 package li.klass.photo_copy
 
 import android.content.ContentResolver
+import android.os.Handler
+import android.os.Looper
 import android.system.Os
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
@@ -58,6 +60,20 @@ fun <X, T, Z> nullableCombineLatest(first: LiveData<X?>, second: LiveData<T?>, c
         }
     }
     return finalLiveData
+}
+
+fun <T> LiveData<T>.debounce(duration: Long = 1000L) = MediatorLiveData<T>().also { mld ->
+    val source = this
+    val handler = Handler(Looper.getMainLooper())
+
+    val runnable = Runnable {
+        mld.value = source.value
+    }
+
+    mld.addSource(source) {
+        handler.removeCallbacks(runnable)
+        handler.postDelayed(runnable, duration)
+    }
 }
 
 val DocumentFile.extension: String get() =

@@ -18,6 +18,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.debounce
 import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.nullableCombineLatest
 import li.klass.photo_copy.ui.copy.CopyProgressFragment
@@ -78,6 +79,7 @@ class MainFragment : Fragment() {
             viewModel.selectedSourceDrive,
             viewModel.selectedTargetDrive
         ) { source, target -> source to target }
+            .debounce(1000)
             .observe(
                 this,
                 Observer { (source, target) ->
@@ -86,9 +88,9 @@ class MainFragment : Fragment() {
 
         viewModel.sourceContainers.observe(this, Observer { sources ->
             context?.let { context ->
-                sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 sourceCard.onItemSelectedListener =
                     spinnerListenerFor(sources, viewModel.selectedSourceDrive)
+                sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 if (sources.isEmpty()) {
                     sourceCard.visibility = View.GONE
                     sourceCardEmpty.visibility = View.VISIBLE
@@ -101,9 +103,9 @@ class MainFragment : Fragment() {
 
         viewModel.targetContainers.observe(this, Observer { targets ->
             context?.let { context ->
-                targetCard.adapter = ExternalDriveAdapter(context, targets)
                 targetCard.onItemSelectedListener =
                     spinnerListenerFor(targets, viewModel.selectedTargetDrive)
+                targetCard.adapter = ExternalDriveAdapter(context, targets)
                 if (targets.isEmpty()) {
                     targetCard.visibility = View.GONE
                     targetCardEmpty.visibility = View.VISIBLE

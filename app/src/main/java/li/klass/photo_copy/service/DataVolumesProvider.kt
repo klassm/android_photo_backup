@@ -3,6 +3,7 @@ package li.klass.photo_copy.service
 import android.content.Context
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import li.klass.photo_copy.model.DataVolume
@@ -34,10 +35,12 @@ class DataVolumesProvider(private val context: Context) {
         val missingVolumes = removableVolumes().filterNot { volume ->
             alreadyMountedAndAvailableVolumes.any { it.volume == volume }
         }
-        return DataVolumes(
+        val volumes = DataVolumes(
             available = alreadyMountedAndAvailableVolumes,
             missingExternalDrives = missingVolumes
         )
+        Log.i(logTag, "getDataVolumes() - found volumes: $volumes")
+        return volumes
     }
 
     fun findVolumeFor(file: DocumentFile): StorageVolume? {
@@ -53,4 +56,8 @@ class DataVolumesProvider(private val context: Context) {
 
     fun mountedVolumeFor(file: DocumentFile, volume: StorageVolume) =
         MountedVolume(file, volume, contentResolver.volumeStats(file))
+
+    companion object {
+        private val logTag = DataVolumesProvider::class.java.name
+    }
 }

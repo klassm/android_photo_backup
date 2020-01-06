@@ -62,6 +62,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         statusImage.value = R.drawable.ic_check_green
     }
 
+    @Synchronized
     fun handleSourceTargetChange(source: SourceContainer?, target: TargetContainer?) {
         val canCopy = source != null && target != null
         filesToCopy.value = null
@@ -104,6 +105,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateDataVolumes() {
         allVolumes.value = null
+        selectedSourceDrive.value = null
+        selectedTargetDrive.value = null
 
         viewModelScope.launch {
             val dataVolumes = withContext(Dispatchers.IO) {
