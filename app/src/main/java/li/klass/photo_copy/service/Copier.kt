@@ -16,8 +16,6 @@ import li.klass.photo_copy.files.*
 import li.klass.photo_copy.md5Hash
 import li.klass.photo_copy.model.FileContainer.SourceContainer
 import li.klass.photo_copy.model.FileContainer.TargetContainer
-import li.klass.photo_copy.model.FileContainer.TargetContainer.TargetExternalDrive
-import li.klass.photo_copy.model.FileContainer.TargetContainer.UnknownExternalDrive
 
 enum class CopyResult {
     SUCCESS,

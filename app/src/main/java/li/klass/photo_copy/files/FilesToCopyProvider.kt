@@ -2,6 +2,7 @@ package li.klass.photo_copy.files
 
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.listAllFiles
@@ -10,7 +11,7 @@ import li.klass.photo_copy.model.FileContainer.SourceContainer.SourceExternalDri
 import li.klass.photo_copy.model.FileContainer.SourceContainer.SourcePtp
 import li.klass.photo_copy.model.FileContainer.TargetContainer.TargetExternalDrive
 
-class FilesToCopyProvider(private val usbService: UsbService, private val ptpService: PtpService) {
+class FilesToCopyProvider(private val usbService: UsbService, private val ptpFileProvider: PtpFileProvider) {
     fun calculateFilesToCopy(
         target: FileContainer.TargetContainer,
         source: FileContainer.SourceContainer,
@@ -30,8 +31,8 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpSer
     ): Collection<CopyableFile> {
         val copyableFiles = when (source) {
             is SourceExternalDrive -> usbService.listFiles(source)
-            is SourcePtp -> ptpService.getAvailableFiles(transferListOnly)
-        } ?: emptyList()
+            is SourcePtp -> ptpFileProvider.getFilesFor(transferListOnly)
+        }
         val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
         val allTargetFileNames = allTargetFiles.map { it.name }
         val toCopy = copyableFiles.filterNot { allTargetFileNames.contains(it.filename) }

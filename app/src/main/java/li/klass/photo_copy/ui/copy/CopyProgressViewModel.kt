@@ -7,8 +7,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import li.klass.photo_copy.AppDatabase
 import li.klass.photo_copy.files.*
+import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
+import li.klass.photo_copy.files.ptp.database.PtpItemDao
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.FileContainer.SourceContainer
 import li.klass.photo_copy.model.FileContainer.TargetContainer
@@ -38,6 +41,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
     var transferListOnly: Boolean = false
 
     val copyProgress: MutableLiveData<CopyProgress?> = MutableLiveData(null)
+    val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
 
     fun startCopying() {
 
@@ -76,14 +80,14 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
     private val copier: Copier
         get() {
             val usbService = UsbService(app.contentResolver)
-            val ptpService = PtpService()
+            val ptpFileProvider = PtpFileProvider(PtpService(), ptpItemDao)
             val targetFileCreator = TargetFileCreator(usbService, app)
             val fileCopier = FileCopier(
                 app.contentResolver,
-                ptpService,
+                ptpFileProvider,
                 targetFileCreator
             )
-            val filesToCopyProvider = FilesToCopyProvider(usbService, ptpService)
+            val filesToCopyProvider = FilesToCopyProvider(usbService, ptpFileProvider)
             val jpgFromNefExtractor = JpgFromNefExtractor(targetFileCreator, app)
 
             return Copier(

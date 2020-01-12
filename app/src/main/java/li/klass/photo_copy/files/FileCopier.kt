@@ -6,12 +6,12 @@ import androidx.documentfile.provider.DocumentFile
 import arrow.core.Either
 import arrow.core.Either.Companion.left
 import arrow.core.Either.Companion.right
-import li.klass.photo_copy.files.ptp.PtpService
+import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.service.CopyResult
 
 class FileCopier(
     private val contentResolver: ContentResolver,
-    private val ptpService: PtpService,
+    private val ptpFileProvider: PtpFileProvider,
     private val targetFileCreator: TargetFileCreator
 ) {
     fun copy(from: CopyableFile, targetDirectory: DocumentFile): Either<CopyResult, DocumentFile> {
@@ -35,7 +35,7 @@ class FileCopier(
 
     private fun read(file: CopyableFile): ByteArray? =
         when (file) {
-            is CopyableFile.PtpFile -> ptpService.fetchFile(file)
+            is CopyableFile.PtpFile -> ptpFileProvider.fetchFile(file)
             is CopyableFile.FileSystemFile -> contentResolver.openInputStream(file.documentFile.uri).use { it?.readBytes() }
         }
 

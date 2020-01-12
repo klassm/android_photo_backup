@@ -38,7 +38,7 @@ sealed class CopyableFile {
 
     data class PtpFile(
         override val filename: String,
-        val objectHandle: PtpDataType.ObjectHandle,
+        val uid: Long,
         val captureDate: DateTime
     ) :
         CopyableFile() {

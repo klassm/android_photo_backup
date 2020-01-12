@@ -14,10 +14,13 @@ import arrow.core.extensions.list.functorFilter.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import li.klass.photo_copy.AppDatabase
 import li.klass.photo_copy.Constants.prefDidUserSeeExternalAccessInfoMessage
 import li.klass.photo_copy.R
 import li.klass.photo_copy.files.FilesToCopyProvider
+import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
+import li.klass.photo_copy.files.ptp.database.PtpItemDao
 import li.klass.photo_copy.files.usb.ExternalDriveDocumentDivider
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.DataVolume
@@ -45,6 +48,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
     val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
+
+    private val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
 
     private fun updateImageAndErrorMessage() {
         if (allVolumes.value.isNullOrEmpty()) {
@@ -77,7 +82,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     @Synchronized
-    private fun updateFilesToCopy(source: SourceContainer?, target: TargetContainer?, transferListOnly: Boolean = false) {
+    private fun updateFilesToCopy(source: SourceContainer?, target: TargetContainer?, transferListOnly: Boolean = true) {
         Log.i(logTag, "handleSourceTargetChange(source=$source, target=$target)")
 
         val canCopy = source != null && target != null
@@ -88,7 +93,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        FilesToCopyProvider(UsbService(app.contentResolver), PtpService())
+                        FilesToCopyProvider(UsbService(app.contentResolver), PtpFileProvider(PtpService(), ptpItemDao))
                             .calculateFilesToCopy(target!!, source!!, transferListOnly).size
                     }
             }

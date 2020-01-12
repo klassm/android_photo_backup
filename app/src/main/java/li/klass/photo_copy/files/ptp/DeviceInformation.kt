@@ -4,5 +4,6 @@ import java.io.Serializable
 
 data class DeviceInformation(
     val model: String,
-    val manufacturer: String
+    val manufacturer: String,
+    val serialNumber: String
 ): Serializable

@@ -1,6 +1,7 @@
 package li.klass.photo_copy.files.ptp
 
 import android.util.Log
+import androidx.room.RoomDatabase
 import com.fimagena.libptp.PtpConnection
 import com.fimagena.libptp.PtpDataType
 import com.fimagena.libptp.PtpDataType.StorageID
@@ -9,6 +10,7 @@ import com.fimagena.libptp.ptpip.PtpIpConnection
 import com.fimagena.libptp.ptpip.PtpIpConnection.PtpIpAddress
 import com.fimagena.libptp.ptpip.PtpIpConnection.PtpIpHostId
 import li.klass.photo_copy.files.CopyableFile
+import li.klass.photo_copy.files.ptp.database.PtpItemDao
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import java.net.InetAddress
@@ -62,7 +64,7 @@ object PtpConnectionSingleton {
             connect().openSession(2000).use {
                 function(it)
             }
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             Log.i(logTag, "runConnected - could not execute command", e)
             null
         }
@@ -77,36 +79,29 @@ class PtpService {
         }?.let {
             DeviceInformation(
                 model = it.mModel.mString,
-                manufacturer = it.mManufacturer.mString
+                manufacturer = it.mManufacturer.mString,
+                serialNumber = it.mSerialNumber.mString
             )
         }
 
-    fun fetchFile(ptpFile: CopyableFile.PtpFile) =
+    fun fetchFile(handle: PtpDataType.ObjectHandle) =
         runConnected {
-            Log.i(logTag, "fetchFile(ptpFile=$ptpFile)")
-            it.getObject(ptpFile.objectHandle)
+            Log.i(logTag, "fetchFile(handle=$handle)")
+            it.getObject(handle)
         }
 
-    fun getAvailableFiles(transferListOnly: Boolean) =
-        runConnected {
-            Log.i(logTag, "getAvailableFiles()")
-            getFileHandles(transferListOnly, it).map { handle ->
-                val info = it.getObjectInfo(handle)
-                CopyableFile.PtpFile(
-                    filename = info.mFilename.mString,
-                    objectHandle = handle,
-                    captureDate = captureDateTimeFormatter.parseDateTime(info.mCaptureDate.mString)
-                )
-            }.apply {
-                Log.i(logTag, "getAvailableFiles() - found $size files.")
-            }
-        }
+    fun getAllFiles(): Array<PtpDataType.ObjectHandle>? = runConnected {
+        Log.i(logTag, "getAvailableFiles()")
+        it.getObjectHandles(allStorageId, typeImage)
+    }
 
-    private fun getFileHandles(transferListOnly: Boolean, ptpSession: PtpSession): Array<PtpDataType.ObjectHandle> {
-        return when(transferListOnly) {
-            true -> ptpSession.transferList
-            else -> ptpSession.getObjectHandles(allStorageId, typeImage)
-        }
+    fun getTransferList(): Array<PtpDataType.ObjectHandle>? = runConnected {
+        Log.i(logTag, "getTransferList()")
+        it.transferList
+    }
+
+    fun getObjectInfoFor(handle: PtpDataType.ObjectHandle) = runConnected {
+        it.getObjectInfo(handle)
     }
 
     private fun <T> runConnected(
@@ -117,6 +112,5 @@ class PtpService {
         private val allStorageId = StorageID(0xFFFFFFFF)
         private val typeImage = PtpDataType.ObjectFormatCode(0x3000)
         private val logTag = PtpService::class.java.name
-        val captureDateTimeFormatter: DateTimeFormatter = DateTimeFormat.forPattern("YYYYMMdd'T'HHmmss")
     }
 }
