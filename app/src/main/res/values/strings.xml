@@ -40,4 +40,5 @@
     <string name="external_drive_access_content">The app needs access to SD-Cards to check what to copy. Please grant access on the following dialog(s).</string>
     <string name="ok">OK</string>
     <string name="copy_transfer_list_only">Copy transfer list only</string>
+    <string name="wifi_settings">WiFi Settings</string>
 </resources>

@@ -3,6 +3,7 @@ package li.klass.photo_copy
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -48,6 +49,10 @@ class MainActivity : AppCompatActivity() {
         }
         if (item.itemId == R.id.action_settings) {
             startActivity(Intent(this, SettingsActivity::class.java))
+            return true
+        }
+        if (item.itemId == R.id.action_openwifisettings) {
+            startActivity(Intent(Settings.ACTION_WIFI_SETTINGS));
             return true
         }
         return super.onOptionsItemSelected(item)
