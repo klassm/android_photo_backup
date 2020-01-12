@@ -69,10 +69,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun handleSourceTargetChange(source: SourceContainer?, target: TargetContainer?) {
-        source ?.let {
-            transferListOnly.value = if (it is SourceContainer.SourcePtp) true else null
-        }
-
+        transferListOnly.value = if (source != null && source is SourceContainer.SourcePtp) true else null
         updateFilesToCopy(source, target)
     }
 
