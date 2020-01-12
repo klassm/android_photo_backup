@@ -87,7 +87,10 @@ class PtpService {
     fun fetchFile(handle: PtpDataType.ObjectHandle) =
         runConnected {
             Log.i(logTag, "fetchFile(handle=$handle)")
-            it.getObject(handle)
+            it.notifyFileAcquisitionStart(handle)
+            val result = it.getObject(handle)
+            it.notifyFileAcquisitionEnd(handle)
+            result
         }
 
     fun getAllFiles(): Array<PtpDataType.ObjectHandle>? = runConnected {
