@@ -116,6 +116,15 @@ class MainFragment : Fragment() {
             }
         })
 
+        viewModel.transferListOnly.observe(this, Observer { transferOnly ->
+            transferListOnly.visibility = if(transferOnly == null) View.GONE else View.VISIBLE
+            transferListOnly.isChecked = transferOnly ?: false
+        })
+
+        transferListOnly.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.handleTransferListOnlyChange(isChecked)
+        }
+
         viewModel.allVolumes.observe(this, Observer {
             if (it != null) {
                 viewModel.handleExternalStorageChange(it)
@@ -201,8 +210,9 @@ class MainFragment : Fragment() {
     fun startCopying() {
         val source = viewModel.selectedSourceDrive.value ?: return
         val target = viewModel.selectedTargetDrive.value ?: return
+        val transferListOnly = viewModel.transferListOnly.value ?: false
         activity?.supportFragmentManager?.beginTransaction()
-            ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target))
+            ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target, transferListOnly))
             ?.addToBackStack(null)
             ?.commit()
     }

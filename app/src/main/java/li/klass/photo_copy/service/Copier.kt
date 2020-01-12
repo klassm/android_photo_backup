@@ -51,10 +51,11 @@ class Copier(
     suspend fun copy(
         source: SourceContainer,
         target: TargetContainer,
+        transferListOnly: Boolean,
         listener: CopyListener
     ) = withContext(Dispatchers.IO) {
         val targetDirectory = targetFileCreator.getTargetDirectory(target)
-        val toCopy = filesToCopyProvider.calculateFilesToCopy(targetDirectory, source)
+        val toCopy = filesToCopyProvider.calculateFilesToCopy(targetDirectory, source, transferListOnly)
         listener.onCopyStarted(toCopy.size)
 
         toCopy.forEachIndexed { index, file ->

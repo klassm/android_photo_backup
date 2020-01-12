@@ -41,6 +41,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
     val startCopyButtonVisible: MutableLiveData<Boolean> = MutableLiveData(false)
     val filesToCopy: MutableLiveData<Int?> = MutableLiveData(null)
+    val transferListOnly: MutableLiveData<Boolean?> = MutableLiveData(null)
 
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
     val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
@@ -62,20 +63,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         statusImage.value = R.drawable.ic_check_green
     }
 
-    @Synchronized
     fun handleSourceTargetChange(source: SourceContainer?, target: TargetContainer?) {
-        val canCopy = source != null && target != null
-        filesToCopy.value = null
-        startCopyButtonVisible.value = canCopy
+        source ?.let {
+            transferListOnly.value = if (it is SourceContainer.SourcePtp) true else null
+        }
 
+        updateFilesToCopy(source, target)
+    }
+
+    fun handleTransferListOnlyChange(transfer: Boolean) {
+        transferListOnly.value = transfer
+        updateFilesToCopy(selectedSourceDrive.value, selectedTargetDrive.value, transfer)
+    }
+
+    @Synchronized
+    private fun updateFilesToCopy(source: SourceContainer?, target: TargetContainer?, transferListOnly: Boolean = false) {
         Log.i(logTag, "handleSourceTargetChange(source=$source, target=$target)")
 
+        val canCopy = source != null && target != null
+        startCopyButtonVisible.value = canCopy
+
         if (canCopy) {
+            filesToCopy.value = null
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
                         FilesToCopyProvider(UsbService(app.contentResolver), PtpService())
-                            .calculateFilesToCopy(target!!, source!!).size
+                            .calculateFilesToCopy(target!!, source!!, transferListOnly).size
                     }
             }
         }

@@ -87,10 +87,10 @@ class PtpService {
             it.getObject(ptpFile.objectHandle)
         }
 
-    fun getAvailableFiles() =
+    fun getAvailableFiles(transferListOnly: Boolean) =
         runConnected {
             Log.i(logTag, "getAvailableFiles()")
-            it.getObjectHandles(allStorageId, typeImage).map { handle ->
+            getFileHandles(transferListOnly, it).map { handle ->
                 val info = it.getObjectInfo(handle)
                 CopyableFile.PtpFile(
                     filename = info.mFilename.mString,
@@ -101,6 +101,13 @@ class PtpService {
                 Log.i(logTag, "getAvailableFiles() - found $size files.")
             }
         }
+
+    private fun getFileHandles(transferListOnly: Boolean, ptpSession: PtpSession): Array<PtpDataType.ObjectHandle> {
+        return when(transferListOnly) {
+            true -> ptpSession.transferList
+            else -> ptpSession.getObjectHandles(allStorageId, typeImage)
+        }
+    }
 
     private fun <T> runConnected(
         function: (ptpSession: PtpSession) -> T

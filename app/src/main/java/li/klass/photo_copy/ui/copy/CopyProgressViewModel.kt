@@ -35,6 +35,8 @@ data class CopyProgress(
 class CopyProgressViewModel(application: Application) : AndroidViewModel(application) {
     lateinit var source: SourceContainer
     lateinit var target: TargetContainer
+    var transferListOnly: Boolean = false
+
     val copyProgress: MutableLiveData<CopyProgress?> = MutableLiveData(null)
 
     fun startCopying() {
@@ -65,7 +67,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
             }
 
             launch(Dispatchers.IO) {
-                copier.copy(source, target, listener)
+                copier.copy(source, target, transferListOnly, listener)
             }
             app.sendBroadcast(Intent(RELOAD_SD_CARDS))
         }

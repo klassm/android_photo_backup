@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.copying_progress.*
 import li.klass.photo_copy.R
 import li.klass.photo_copy.model.FileContainer.*
-import javax.xml.transform.Source
 
 class CopyProgressFragment : Fragment() {
     private lateinit var viewModel: CopyProgressViewModel
@@ -22,6 +21,7 @@ class CopyProgressFragment : Fragment() {
         viewModel.apply {
             source = args.get("source") as SourceContainer
             target = args.get("target") as TargetContainer
+            transferListOnly = args.getBoolean("transferListOnly")
         }
     }
 
@@ -61,12 +61,14 @@ class CopyProgressFragment : Fragment() {
     companion object {
         fun newInstance(
             source: SourceContainer,
-            target: TargetContainer
+            target: TargetContainer,
+            transferListOnly: Boolean
         ): CopyProgressFragment =
             CopyProgressFragment().apply {
                 arguments = Bundle().apply {
                     putSerializable("source", source)
                     putSerializable("target", target)
+                    putSerializable("transferListOnly", transferListOnly)
                 }
             }
     }

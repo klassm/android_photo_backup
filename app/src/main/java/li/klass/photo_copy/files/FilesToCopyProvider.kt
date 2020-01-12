@@ -13,22 +13,24 @@ import li.klass.photo_copy.model.FileContainer.TargetContainer.TargetExternalDri
 class FilesToCopyProvider(private val usbService: UsbService, private val ptpService: PtpService) {
     fun calculateFilesToCopy(
         target: FileContainer.TargetContainer,
-        source: FileContainer.SourceContainer
+        source: FileContainer.SourceContainer,
+        transferListOnly: Boolean
     ): Collection<CopyableFile> {
         val targetDirectory = when (target) {
             is TargetExternalDrive -> target.targetDirectory
             else -> null
         }
-        return calculateFilesToCopy(targetDirectory, source)
+        return calculateFilesToCopy(targetDirectory, source, transferListOnly)
     }
 
     fun calculateFilesToCopy(
         targetDirectory: DocumentFile?,
-        source: FileContainer.SourceContainer
+        source: FileContainer.SourceContainer,
+        transferListOnly: Boolean
     ): Collection<CopyableFile> {
         val copyableFiles = when (source) {
             is SourceExternalDrive -> usbService.listFiles(source)
-            is SourcePtp -> ptpService.getAvailableFiles()
+            is SourcePtp -> ptpService.getAvailableFiles(transferListOnly)
         } ?: emptyList()
         val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
         val allTargetFileNames = allTargetFiles.map { it.name }
