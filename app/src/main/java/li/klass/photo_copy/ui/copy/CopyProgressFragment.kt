@@ -34,7 +34,7 @@ class CopyProgressFragment : Fragment() {
         val copyFileResultAdapter = context?.let { CopyFileResultAdapter(it, emptyList()) }
         file_progress_list.adapter = copyFileResultAdapter
 
-        viewModel.copyProgress.observe(this, Observer { copyProgress ->
+        viewModel.copyProgress.observe(viewLifecycleOwner, Observer { copyProgress ->
             if (copyProgress != null) {
                 progress.setProgress(copyProgress.progress, true)
                 current_file_index.text = copyProgress.currentIndex.toString()

@@ -81,12 +81,12 @@ class MainFragment : Fragment() {
         ) { source, target -> source to target }
             .debounce(1000)
             .observe(
-                this,
+                viewLifecycleOwner,
                 Observer { (source, target) ->
                     viewModel.handleSourceTargetChange(source, target)
                 })
 
-        viewModel.sourceContainers.observe(this, Observer { sources ->
+        viewModel.sourceContainers.observe(viewLifecycleOwner, Observer { sources ->
             context?.let { context ->
                 sourceCard.onItemSelectedListener =
                     spinnerListenerFor(sources, viewModel.selectedSourceDrive)
@@ -101,7 +101,7 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.targetContainers.observe(this, Observer { targets ->
+        viewModel.targetContainers.observe(viewLifecycleOwner, Observer { targets ->
             context?.let { context ->
                 targetCard.onItemSelectedListener =
                     spinnerListenerFor(targets, viewModel.selectedTargetDrive)
@@ -116,7 +116,7 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.transferListOnly.observe(this, Observer { transferOnly ->
+        viewModel.transferListOnly.observe(viewLifecycleOwner, Observer { transferOnly ->
             transferListOnly.visibility = if(transferOnly == null) View.GONE else View.VISIBLE
             transferListOnly.isChecked = transferOnly ?: false
         })
@@ -125,17 +125,17 @@ class MainFragment : Fragment() {
             viewModel.handleTransferListOnlyChange(isChecked)
         }
 
-        viewModel.allVolumes.observe(this, Observer {
+        viewModel.allVolumes.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 viewModel.handleExternalStorageChange(it)
             }
         })
 
-        viewModel.errorMessage.observe(this, Observer {
+        viewModel.errorMessage.observe(viewLifecycleOwner, Observer {
             errorMessage.text = it
         })
 
-        viewModel.statusImage.observe(this, Observer {
+        viewModel.statusImage.observe(viewLifecycleOwner, Observer {
             statusImage.setImageDrawable(context?.getDrawable(it))
         })
 
@@ -143,14 +143,14 @@ class MainFragment : Fragment() {
             viewModel.startCopyButtonVisible,
             viewModel.filesToCopy
         ) { a, b -> a to b }
-            .observe(this, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
+            .observe(viewLifecycleOwner, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
                 start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
                 if (filesToCopy == null) {
                     start_copying.isEnabled = false
                     start_copying.startAnimation()
                 }
             })
-        viewModel.filesToCopy.observe(this, Observer {
+        viewModel.filesToCopy.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 start_copying.revertAnimation {
                     start_copying.isEnabled = it > 0
@@ -164,7 +164,7 @@ class MainFragment : Fragment() {
         })
 
         viewModel.missingExternalDrives
-            .observe(this, Observer {missing ->
+            .observe(viewLifecycleOwner, Observer {missing ->
                 if (missing != null && missing.isNotEmpty()) {
                     val requestAccess = {
                         viewModel.accessIntentsFor(missing)
