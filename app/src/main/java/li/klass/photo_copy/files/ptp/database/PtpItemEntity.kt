@@ -9,5 +9,6 @@ data class PtpItemEntity(
     @ColumnInfo(name = "manufacturer") val manufacturer: String,
     @ColumnInfo(name = "serialNumber") val serialNumber: String,
     @ColumnInfo(name = "fileName") val fileName: String,
-    @ColumnInfo(name = "captureDate") val captureDate: String
+    @ColumnInfo(name = "captureDate") val captureDate: String,
+    @ColumnInfo(name = "model") val model: String
 )

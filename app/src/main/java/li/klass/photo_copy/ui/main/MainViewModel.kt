@@ -90,7 +90,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        FilesToCopyProvider(UsbService(app.contentResolver), PtpFileProvider(PtpService(), ptpItemDao))
+                        FilesToCopyProvider(UsbService(), PtpFileProvider(PtpService(), ptpItemDao))
                             .calculateFilesToCopy(target!!, source!!, transferListOnly).size
                     }
             }

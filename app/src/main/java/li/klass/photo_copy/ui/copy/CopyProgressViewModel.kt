@@ -79,13 +79,15 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
 
     private val copier: Copier
         get() {
-            val usbService = UsbService(app.contentResolver)
+            val usbService = UsbService()
             val ptpFileProvider = PtpFileProvider(PtpService(), ptpItemDao)
-            val targetFileCreator = TargetFileCreator(usbService, app)
+            val exifDataProvider = ExifDataProvider(app.contentResolver)
+            val targetFileCreator = TargetFileCreator(app, exifDataProvider)
             val fileCopier = FileCopier(
                 app.contentResolver,
                 ptpFileProvider,
-                targetFileCreator
+                targetFileCreator,
+                TargetFileNameProvider(exifDataProvider)
             )
             val filesToCopyProvider = FilesToCopyProvider(usbService, ptpFileProvider)
             val jpgFromNefExtractor = JpgFromNefExtractor(targetFileCreator, app)

@@ -5,6 +5,7 @@ import com.fimagena.libptp.PtpDataType
 import li.klass.photo_copy.files.CopyableFile
 import li.klass.photo_copy.files.ptp.database.PtpItemDao
 import li.klass.photo_copy.files.ptp.database.PtpItemEntity
+import li.klass.photo_copy.model.ExifData
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 
@@ -29,7 +30,8 @@ class PtpFileProvider(private val ptpService: PtpService, private val ptpItemDao
                     manufacturer = deviceInfo.manufacturer,
                     serialNumber = deviceInfo.serialNumber,
                     captureDate = info.mCaptureDate.mString,
-                    fileName = info.mFilename.mString
+                    fileName = info.mFilename.mString,
+                    model = deviceInfo.model
                 )
             }.toList()
 
@@ -57,7 +59,10 @@ class PtpFileProvider(private val ptpService: PtpService, private val ptpItemDao
     ) = CopyableFile.PtpFile(
         filename = entity.fileName,
         uid =  entity.uid,
-        captureDate = captureDateTimeFormatter.parseDateTime(entity.captureDate)
+        exifData = ExifData(
+            captureDate = captureDateTimeFormatter.parseDateTime(entity.captureDate),
+            model = entity.model
+        )
     )
 
     companion object {

@@ -34,8 +34,9 @@ class JpgFromNefExtractor(
             return right(file)
         }
 
+        val inFile = FileSystemFile(file)
         val targetFile: DocumentFile =
-            targetFileCreator.createTargetFileFor(baseDir, FileSystemFile(file), "JPG")
+            targetFileCreator.createTargetFileFor(baseDir, inFile, inFile.filename + ".jpg","JPG")
                 ?: return left(CopyResult.JPG_CREATION_FOR_NEF_FAILED)
 
         return try {
@@ -88,10 +89,6 @@ class JpgFromNefExtractor(
         } catch (e: Exception) {
             throw IllegalStateException("could not save", e)
         }
-//        val sourcePosition = source.latLong
-//        sourcePosition?.let {
-//            target.setLatLong(it[0], it[1])
-//        }
     }
 
     private fun metadataFrom(file: DocumentFile): Metadata? =

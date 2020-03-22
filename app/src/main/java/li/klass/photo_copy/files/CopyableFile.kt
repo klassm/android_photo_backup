@@ -1,8 +1,7 @@
 package li.klass.photo_copy.files
 
 import androidx.documentfile.provider.DocumentFile
-import com.fimagena.libptp.PtpDataType
-import org.joda.time.DateTime
+import li.klass.photo_copy.model.ExifData
 import java.lang.RuntimeException
 import java.util.*
 
@@ -39,7 +38,7 @@ sealed class CopyableFile {
     data class PtpFile(
         override val filename: String,
         val uid: Long,
-        val captureDate: DateTime
+        val exifData: ExifData
     ) :
         CopyableFile() {
         override val mimeType: String
