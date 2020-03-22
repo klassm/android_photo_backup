@@ -3,7 +3,7 @@ package li.klass.photo_copy.files
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import li.klass.photo_copy.files.ptp.PtpFileProvider
-import li.klass.photo_copy.files.ptp.PtpService
+import li.klass.photo_copy.files.usb.FileSystemExifDataProvider
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.listAllFiles
 import li.klass.photo_copy.model.FileContainer
@@ -35,7 +35,7 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpFil
         }
         val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
         val allTargetFileNames = allTargetFiles.map { it.name }
-        val toCopy = copyableFiles.filterNot { allTargetFileNames.contains(it.filename) }
+        val toCopy = copyableFiles.filterNot { allTargetFileNames.contains(it.targetFileName) }
 
         Log.i(
             logTag,

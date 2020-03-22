@@ -33,20 +33,28 @@ fun mimeTypeFor(extension: String) =
 sealed class CopyableFile {
     abstract val filename: String
     abstract val mimeType: String
+    abstract val exifData: ExifData
     val extension get() = filename.split(".").last().toUpperCase(Locale.getDefault())
 
     data class PtpFile(
         override val filename: String,
         val uid: Long,
-        val exifData: ExifData
+        override val exifData: ExifData
     ) :
         CopyableFile() {
         override val mimeType: String
             get() = mimeTypeFor(extension)
     }
 
-    data class FileSystemFile(val documentFile: DocumentFile) : CopyableFile() {
+    data class FileSystemFile(val documentFile: DocumentFile, override val exifData: ExifData) : CopyableFile() {
         override val filename = documentFile.name ?: "???"
         override val mimeType = documentFile.type ?: mimeTypeFor(extension)
+    }
+
+    val targetFileName: String get() {
+        val targetFileName = filename
+        val prefix = exifData.model ?.let { it + "_" }
+
+        return prefix + targetFileName
     }
 }

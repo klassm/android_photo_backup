@@ -67,7 +67,7 @@ class Copier(
             Either.fx<CopyResult, CopyResult> {
                 val (targetFile) = fileCopier.copy(toCopy, targetRoot)
                 verifyHash(toCopy, targetFile)
-                jpgFromNefExtractor.extractTargetFileFrom(targetFile, targetRoot)
+                jpgFromNefExtractor.extractTargetFileFrom(CopyableFile.FileSystemFile(targetFile, toCopy.exifData), targetRoot)
 
                 CopyResult.SUCCESS
             }.fold({ it }, { it })

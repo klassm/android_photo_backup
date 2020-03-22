@@ -7,8 +7,7 @@ import li.klass.photo_copy.model.ExifData
 import li.klass.photo_copy.model.FileContainer
 
 class TargetFileCreator(
-    private val context: Context,
-    private val exifDataProvider: ExifDataProvider
+    private val context: Context
 ) {
     private fun getCaptureDateFor(exifData: ExifData) = exifData
         .captureDate
@@ -18,14 +17,13 @@ class TargetFileCreator(
         targetRoot: DocumentFile,
         inFile: CopyableFile,
         targetFileName: String,
-        extension: String = inFile.extension
+        extension: String = inFile.extension,
+        mimeType: String = inFile.mimeType
     ): DocumentFile? {
         val baseDir = targetRoot.createDirIfNotExists(extension)
-        val exifData = exifDataProvider.exifDataFor(inFile)
-        val targetDirectory = baseDir.createDirIfNotExists(getCaptureDateFor(exifData))
-        val mimeType =
-            if (extension == inFile.extension) inFile.mimeType else mimeTypeFor(extension)
+        val exifData = inFile.exifData
 
+        val targetDirectory = baseDir.createDirIfNotExists(getCaptureDateFor(exifData))
         return targetDirectory.createFile(mimeType, targetFileName)
     }
 

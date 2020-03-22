@@ -18,6 +18,7 @@ import com.drew.metadata.exif.GpsDirectory.TAG_DATE_STAMP
 import li.klass.photo_copy.Constants
 import li.klass.photo_copy.extension
 import li.klass.photo_copy.files.CopyableFile.FileSystemFile
+import li.klass.photo_copy.model.ExifData
 import li.klass.photo_copy.service.CopyResult
 import li.klass.photo_copy.service.Copier
 import java.lang.IllegalStateException
@@ -27,21 +28,23 @@ class JpgFromNefExtractor(
     private val context: Context
 ) {
     fun extractTargetFileFrom(
-        file: DocumentFile,
+        file: FileSystemFile,
         baseDir: DocumentFile
-    ): Either<CopyResult, DocumentFile> {
+    ): Either<CopyResult, CopyableFile> {
         if (file.extension != "NEF" || !shouldExtractJpeg) {
             return right(file)
         }
 
-        val inFile = FileSystemFile(file)
         val targetFile: DocumentFile =
-            targetFileCreator.createTargetFileFor(baseDir, inFile, inFile.filename + ".jpg","JPG")
+            targetFileCreator.createTargetFileFor(baseDir, file,
+                targetFileName = file.filename + ".JPG",
+                extension = "JPG",
+                mimeType = mimeTypeFor("JPG"))
                 ?: return left(CopyResult.JPG_CREATION_FOR_NEF_FAILED)
 
         return try {
             val contentResolver = context.contentResolver
-            val sourceMetadata = metadataFrom(file) ?: return left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
+            val sourceMetadata = metadataFrom(file.documentFile) ?: return left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
             val (offset, length) = sourceMetadata.let { source ->
                 val directory = source.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
                 val offset = directory.getInt(0x0201)
@@ -50,7 +53,7 @@ class JpgFromNefExtractor(
                 offset to length
             }
 
-            contentResolver.openInputStream(file.uri).use { source ->
+            contentResolver.openInputStream(file.documentFile.uri).use { source ->
                 source!!.skip(offset.toLong())
 
                 contentResolver.openOutputStream(targetFile.uri).use { target ->
@@ -61,11 +64,11 @@ class JpgFromNefExtractor(
             val targetMetadata = exifDataFrom(targetFile) ?: return left(CopyResult.ERROR)
             copyExifData(sourceMetadata, targetMetadata)
 
-            return right(targetFile)
+            return right(FileSystemFile(targetFile, file.exifData))
         } catch (e: Exception) {
             Log.e(
                 Copier.logTag,
-                "extractJpgFromNef(baseDir=${baseDir.name},nef=${file.name}) - Could not extract jpg from nef",
+                "extractJpgFromNef(baseDir=${baseDir.name},nef=${file.filename}) - Could not extract jpg from nef",
                 e
             )
             return left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)

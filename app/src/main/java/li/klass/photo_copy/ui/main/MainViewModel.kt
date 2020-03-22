@@ -22,6 +22,7 @@ import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.ptp.database.PtpItemDao
 import li.klass.photo_copy.files.usb.ExternalDriveDocumentDivider
+import li.klass.photo_copy.files.usb.FileSystemExifDataProvider
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.DataVolume
 import li.klass.photo_copy.model.DataVolume.MountedVolume
@@ -90,7 +91,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        FilesToCopyProvider(UsbService(), PtpFileProvider(PtpService(), ptpItemDao))
+                        val usbService = UsbService(FileSystemExifDataProvider(app.contentResolver))
+                        FilesToCopyProvider(usbService, PtpFileProvider(PtpService(), ptpItemDao))
                             .calculateFilesToCopy(target!!, source!!, transferListOnly).size
                     }
             }

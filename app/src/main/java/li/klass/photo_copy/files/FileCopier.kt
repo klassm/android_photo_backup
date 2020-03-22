@@ -12,13 +12,11 @@ import li.klass.photo_copy.service.CopyResult
 class FileCopier(
     private val contentResolver: ContentResolver,
     private val ptpFileProvider: PtpFileProvider,
-    private val targetFileCreator: TargetFileCreator,
-    private val targetFileNameProvider: TargetFileNameProvider
+    private val targetFileCreator: TargetFileCreator
 ) {
 
     fun copy(from: CopyableFile, targetDirectory: DocumentFile): Either<CopyResult, DocumentFile> {
-        val targetFileName = targetFileNameProvider.getTargetFileName(from)
-        val targetFile = targetFileCreator.createTargetFileFor(targetDirectory, from, targetFileName)
+        val targetFile = targetFileCreator.createTargetFileFor(targetDirectory, from, from.targetFileName)
             ?: return left(CopyResult.TARGET_FILE_CREATION_FAILED)
         return copyToFile(from, targetFile)
     }
