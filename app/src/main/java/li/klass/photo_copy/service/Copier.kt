@@ -8,7 +8,7 @@ import androidx.preference.PreferenceManager
 import arrow.core.Either
 import arrow.core.Either.Companion.left
 import arrow.core.Either.Companion.right
-import arrow.core.extensions.fx
+import arrow.core.computations.either
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import li.klass.photo_copy.Constants.prefVerifyMd5HashOfCopiedFiles
@@ -64,10 +64,15 @@ class Copier(
 
     private fun copy(toCopy: CopyableFile, targetRoot: DocumentFile): CopyResult {
         return try {
-            Either.fx<CopyResult, CopyResult> {
-                val (targetFile) = fileCopier.copy(toCopy, targetRoot)
+            either.eager<CopyResult, CopyResult> {
+                val targetFile = fileCopier.copy(toCopy, targetRoot).bind()
                 verifyHash(toCopy, targetFile)
-                jpgFromNefExtractor.extractTargetFileFrom(CopyableFile.FileSystemFile(targetFile, toCopy.exifData), targetRoot)
+                jpgFromNefExtractor.extractTargetFileFrom(
+                    CopyableFile.FileSystemFile(
+                        targetFile,
+                        toCopy.exifData
+                    ), targetRoot
+                )
 
                 CopyResult.SUCCESS
             }.fold({ it }, { it })

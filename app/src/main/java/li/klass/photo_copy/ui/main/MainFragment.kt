@@ -12,10 +12,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
 import li.klass.photo_copy.debounce
@@ -30,7 +31,7 @@ class MainFragment : Fragment() {
         const val RELOAD_SD_CARDS = "reload_sd_cards"
     }
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -72,8 +73,6 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         nullableCombineLatest(
             viewModel.selectedSourceDrive,
@@ -135,8 +134,8 @@ class MainFragment : Fragment() {
             errorMessage.text = it
         })
 
-        viewModel.statusImage.observe(viewLifecycleOwner, Observer {
-            statusImage.setImageDrawable(context?.getDrawable(it))
+        viewModel.statusImage.observe(viewLifecycleOwner, Observer { drawable ->
+            statusImage.setImageDrawable(context?.let { ContextCompat.getDrawable(it, drawable) })
         })
 
         nullableCombineLatest(

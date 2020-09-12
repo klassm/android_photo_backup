@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import kotlinx.android.synthetic.main.external_drive_dropdown_item.view.*
 import li.klass.photo_copy.R
-import li.klass.photo_copy.model.DataVolume
 import li.klass.photo_copy.model.ExternalVolume
 import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.model.FileContainer.SourceContainer.SourcePtp

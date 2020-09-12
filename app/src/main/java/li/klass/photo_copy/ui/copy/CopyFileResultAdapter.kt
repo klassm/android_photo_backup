@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.copy_file_result_item.view.*
 import li.klass.photo_copy.R
 import li.klass.photo_copy.service.CopyResult
@@ -34,7 +35,7 @@ class CopyFileResultAdapter(
         )
 
         view.filename.text = item.fileName
-        view.statusImage.setImageDrawable(view.context.getDrawable(when(item.result) {
+        view.statusImage.setImageDrawable(ContextCompat.getDrawable(context, when(item.result) {
             CopyResult.SUCCESS -> R.drawable.ic_check_green
             else -> R.drawable.ic_cross_red
         }))

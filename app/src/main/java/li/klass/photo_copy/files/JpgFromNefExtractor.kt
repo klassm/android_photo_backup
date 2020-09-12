@@ -16,9 +16,7 @@ import com.drew.metadata.exif.GpsDirectory
 import com.drew.metadata.exif.GpsDirectory.TAG_ALTITUDE
 import com.drew.metadata.exif.GpsDirectory.TAG_DATE_STAMP
 import li.klass.photo_copy.Constants
-import li.klass.photo_copy.extension
 import li.klass.photo_copy.files.CopyableFile.FileSystemFile
-import li.klass.photo_copy.model.ExifData
 import li.klass.photo_copy.service.CopyResult
 import li.klass.photo_copy.service.Copier
 import java.lang.IllegalStateException

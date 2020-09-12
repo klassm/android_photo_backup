@@ -76,5 +76,3 @@ fun <T> LiveData<T>.debounce(duration: Long = 1000L) = MediatorLiveData<T>().als
     }
 }
 
-val DocumentFile.extension: String get() =
-    (name ?: "").split(".").last().toUpperCase(Locale.getDefault())

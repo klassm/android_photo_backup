@@ -1,7 +1,6 @@
 package li.klass.photo_copy.files.ptp
 
 import android.util.Log
-import androidx.room.RoomDatabase
 import com.fimagena.libptp.PtpConnection
 import com.fimagena.libptp.PtpDataType
 import com.fimagena.libptp.PtpDataType.StorageID
@@ -9,10 +8,6 @@ import com.fimagena.libptp.PtpSession
 import com.fimagena.libptp.ptpip.PtpIpConnection
 import com.fimagena.libptp.ptpip.PtpIpConnection.PtpIpAddress
 import com.fimagena.libptp.ptpip.PtpIpConnection.PtpIpHostId
-import li.klass.photo_copy.files.CopyableFile
-import li.klass.photo_copy.files.ptp.database.PtpItemDao
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 import java.net.InetAddress
 
 object PtpConnectionSingleton {

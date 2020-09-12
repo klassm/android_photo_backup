@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.copying_progress.*
@@ -12,12 +13,11 @@ import li.klass.photo_copy.R
 import li.klass.photo_copy.model.FileContainer.*
 
 class CopyProgressFragment : Fragment() {
-    private lateinit var viewModel: CopyProgressViewModel
+    private val viewModel: CopyProgressViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments ?: Bundle()
-        viewModel = ViewModelProviders.of(this).get(CopyProgressViewModel::class.java)
         viewModel.apply {
             source = args.get("source") as SourceContainer
             target = args.get("target") as TargetContainer

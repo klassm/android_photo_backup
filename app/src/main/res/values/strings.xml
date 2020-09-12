@@ -7,8 +7,6 @@
         <item quantity="other">Copy %d files</item>
     </plurals>
 
-    <string name="copying_dialog_title">Copying …</string>
-    <string name="copying_dialog_current_file">Current file:</string>
     <string name="copying_dialog_current_file_index_separator">of</string>
 
     <string name="settings_activity_title">Settings</string>

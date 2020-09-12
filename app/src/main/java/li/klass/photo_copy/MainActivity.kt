@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             return true
         }
         if (item.itemId == R.id.action_openwifisettings) {
-            startActivity(Intent(Settings.ACTION_WIFI_SETTINGS));
+            startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
             return true
         }
         return super.onOptionsItemSelected(item)

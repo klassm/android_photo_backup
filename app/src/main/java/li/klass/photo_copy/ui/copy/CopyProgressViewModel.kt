@@ -42,7 +42,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
     var transferListOnly: Boolean = false
 
     val copyProgress: MutableLiveData<CopyProgress?> = MutableLiveData(null)
-    val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
+    private val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
 
     fun startCopying() {
 
