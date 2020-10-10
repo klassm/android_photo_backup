@@ -12,7 +12,9 @@ import li.klass.photo_copy.files.*
 import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.ptp.database.PtpItemDao
+import li.klass.photo_copy.files.ptp.database.UsbItemExifDataDao
 import li.klass.photo_copy.files.usb.FileSystemExifDataProvider
+import li.klass.photo_copy.files.usb.FileSystemFileCreator
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.FileContainer.SourceContainer
 import li.klass.photo_copy.model.FileContainer.TargetContainer
@@ -42,7 +44,9 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
     var transferListOnly: Boolean = false
 
     val copyProgress: MutableLiveData<CopyProgress?> = MutableLiveData(null)
-    private val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
+    private val database = AppDatabase.getInstance(app)
+    private val ptpItemDao: PtpItemDao = database.ptpItemDao()
+    private val usbItemExifDataDao: UsbItemExifDataDao = database.usbItemExifDataDao()
 
     fun startCopying() {
 
@@ -87,7 +91,7 @@ class CopyProgressViewModel(application: Application) : AndroidViewModel(applica
                 ptpFileProvider,
                 targetFileCreator
             )
-            val usbService = UsbService(FileSystemExifDataProvider(app.contentResolver))
+            val usbService = UsbService(FileSystemFileCreator(FileSystemExifDataProvider(app.contentResolver), usbItemExifDataDao))
             val filesToCopyProvider = FilesToCopyProvider(usbService, ptpFileProvider)
             val jpgFromNefExtractor = JpgFromNefExtractor(targetFileCreator, app)
 

@@ -1,8 +1,9 @@
 package li.klass.photo_copy.files.usb
 
 import android.content.ContentResolver
-import android.media.ExifInterface
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import androidx.exifinterface.media.ExifInterface
 import li.klass.photo_copy.model.ExifData
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter

@@ -21,8 +21,10 @@ import li.klass.photo_copy.files.FilesToCopyProvider
 import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
 import li.klass.photo_copy.files.ptp.database.PtpItemDao
+import li.klass.photo_copy.files.ptp.database.UsbItemExifDataDao
 import li.klass.photo_copy.files.usb.ExternalDriveDocumentDivider
 import li.klass.photo_copy.files.usb.FileSystemExifDataProvider
+import li.klass.photo_copy.files.usb.FileSystemFileCreator
 import li.klass.photo_copy.files.usb.UsbService
 import li.klass.photo_copy.model.DataVolume
 import li.klass.photo_copy.model.DataVolume.MountedVolume
@@ -50,7 +52,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
     val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
 
-    private val ptpItemDao: PtpItemDao = AppDatabase.getInstance(app).ptpItemDao()
+    private val database = AppDatabase.getInstance(app)
+    private val ptpItemDao: PtpItemDao = database.ptpItemDao()
+    private val usbItemExifDataDao: UsbItemExifDataDao = database.usbItemExifDataDao()
 
     private fun updateImageAndErrorMessage() {
         if (allVolumes.value.isNullOrEmpty()) {
@@ -91,7 +95,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        val usbService = UsbService(FileSystemExifDataProvider(app.contentResolver))
+                        val usbService = UsbService(FileSystemFileCreator(FileSystemExifDataProvider(app.contentResolver), usbItemExifDataDao))
                         FilesToCopyProvider(usbService, PtpFileProvider(PtpService(), ptpItemDao))
                             .calculateFilesToCopy(target!!, source!!, transferListOnly).size
                     }
