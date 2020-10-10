@@ -28,12 +28,19 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpFil
         source: FileContainer.SourceContainer,
         transferListOnly: Boolean
     ): Collection<CopyableFile> {
+        Log.i(logTag, "determining files to copy")
         val copyableFiles = when (source) {
             is SourceExternalDrive -> usbService.listFiles(source)
             is SourcePtp -> ptpFileProvider.getFilesFor(transferListOnly)
         }
+
+        Log.i(logTag, "finding existing files")
         val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
+
+        Log.i(logTag, "mapping target file names")
         val allTargetFileNames = allTargetFiles.map { it.name }
+
+        Log.i(logTag, "removing existing files")
         val toCopy = copyableFiles.filterNot { allTargetFileNames.contains(it.targetFileName) }
 
         Log.i(
