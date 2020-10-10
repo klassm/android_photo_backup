@@ -81,7 +81,10 @@ class JpgFromNefExtractor(
             target.setAttribute("ThumbnailOrientation", orientation.toString())
 
             source.getFirstDirectoryOfType(GpsDirectory::class.java) ?.let { gps ->
-                target.setLatLong(gps.geoLocation.latitude, gps.geoLocation.longitude)
+                if (gps.geoLocation != null) {
+                    target.setLatLong(gps.geoLocation.latitude, gps.geoLocation.longitude)
+                }
+
                 target.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, gps.getString(TAG_DATE_STAMP))
                 target.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, gps.getString(TAG_ALTITUDE))
             }

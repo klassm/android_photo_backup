@@ -14,7 +14,6 @@ import kotlinx.coroutines.withContext
 import li.klass.photo_copy.Constants.prefVerifyMd5HashOfCopiedFiles
 import li.klass.photo_copy.files.*
 import li.klass.photo_copy.md5Hash
-import li.klass.photo_copy.model.FileContainer.SourceContainer
 import li.klass.photo_copy.model.FileContainer.TargetContainer
 
 enum class CopyResult {
@@ -42,18 +41,15 @@ interface CopyListener {
 class Copier(
     private val context: Context,
     private val fileCopier: FileCopier,
-    private val filesToCopyProvider: FilesToCopyProvider,
     private val jpgFromNefExtractor: JpgFromNefExtractor,
     private val targetFileCreator: TargetFileCreator
 ) {
     suspend fun copy(
-        source: SourceContainer,
         target: TargetContainer,
-        transferListOnly: Boolean,
-        listener: CopyListener
+        listener: CopyListener,
+        toCopy: List<CopyableFile>
     ) = withContext(Dispatchers.IO) {
         val targetDirectory = targetFileCreator.getTargetDirectory(target)
-        val toCopy = filesToCopyProvider.calculateFilesToCopy(targetDirectory, source, transferListOnly)
         listener.onCopyStarted(toCopy.size)
 
         toCopy.forEachIndexed { index, file ->

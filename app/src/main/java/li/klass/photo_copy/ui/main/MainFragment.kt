@@ -141,7 +141,7 @@ class MainFragment : Fragment() {
         nullableCombineLatest(
             viewModel.startCopyButtonVisible,
             viewModel.filesToCopy
-        ) { a, b -> a to b }
+        ) { a, b -> a to b?.size }
             .observe(viewLifecycleOwner, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
                 start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
                 if (filesToCopy == null) {
@@ -152,11 +152,11 @@ class MainFragment : Fragment() {
         viewModel.filesToCopy.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 start_copying.revertAnimation {
-                    start_copying.isEnabled = it > 0
+                    start_copying.isEnabled = it.isNotEmpty()
                     start_copying.text = resources.getQuantityString(
                         R.plurals.start_copying,
-                        it,
-                        it
+                        it.size,
+                        it.size
                     )
                 }
             }
@@ -211,7 +211,7 @@ class MainFragment : Fragment() {
         val target = viewModel.selectedTargetDrive.value ?: return
         val transferListOnly = viewModel.transferListOnly.value ?: false
         activity?.supportFragmentManager?.beginTransaction()
-            ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target, transferListOnly))
+            ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target, transferListOnly, viewModel.filesToCopy.value ?: emptyList()))
             ?.addToBackStack(null)
             ?.commit()
     }

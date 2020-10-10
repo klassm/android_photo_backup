@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import li.klass.photo_copy.AppDatabase
 import li.klass.photo_copy.Constants.prefDidUserSeeExternalAccessInfoMessage
 import li.klass.photo_copy.R
+import li.klass.photo_copy.files.CopyableFile
 import li.klass.photo_copy.files.FilesToCopyProvider
 import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.files.ptp.PtpService
@@ -46,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         emptyList()
     )
     val startCopyButtonVisible: MutableLiveData<Boolean> = MutableLiveData(false)
-    val filesToCopy: MutableLiveData<Int?> = MutableLiveData(null)
+    val filesToCopy: MutableLiveData<Collection<CopyableFile>?> = MutableLiveData(null)
     val transferListOnly: MutableLiveData<Boolean?> = MutableLiveData(null)
 
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
@@ -97,7 +98,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     withContext(Dispatchers.IO) {
                         val usbService = UsbService(FileSystemFileCreator(FileSystemExifDataProvider(app.contentResolver), usbItemExifDataDao))
                         FilesToCopyProvider(usbService, PtpFileProvider(PtpService(), ptpItemDao))
-                            .calculateFilesToCopy(target!!, source!!, transferListOnly).size
+                            .calculateFilesToCopy(target!!, source!!, transferListOnly)
                     }
             }
         }

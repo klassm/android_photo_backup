@@ -2,6 +2,7 @@ package li.klass.photo_copy.files
 
 import androidx.documentfile.provider.DocumentFile
 import li.klass.photo_copy.model.ExifData
+import java.io.Serializable
 import java.lang.RuntimeException
 import java.util.*
 
@@ -30,7 +31,7 @@ val extensionToMimeType = mapOf(
 fun mimeTypeFor(extension: String) =
     extensionToMimeType.getOrElse(extension) { throw RuntimeException("Cannot find mime type for $extension") }
 
-sealed class CopyableFile {
+sealed class CopyableFile: Serializable {
     abstract val filename: String
     abstract val mimeType: String
     abstract val exifData: ExifData

@@ -7,14 +7,15 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.copying_progress.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.files.CopyableFile
 import li.klass.photo_copy.model.FileContainer.*
 
 class CopyProgressFragment : Fragment() {
     private val viewModel: CopyProgressViewModel by viewModels()
 
+    @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments ?: Bundle()
@@ -22,6 +23,7 @@ class CopyProgressFragment : Fragment() {
             source = args.get("source") as SourceContainer
             target = args.get("target") as TargetContainer
             transferListOnly = args.getBoolean("transferListOnly")
+            filesToCopy = args.get("filesToCopy") as List<CopyableFile>
         }
     }
 
@@ -62,13 +64,15 @@ class CopyProgressFragment : Fragment() {
         fun newInstance(
             source: SourceContainer,
             target: TargetContainer,
-            transferListOnly: Boolean
+            transferListOnly: Boolean,
+            filesToCopy: Collection<CopyableFile>
         ): CopyProgressFragment =
             CopyProgressFragment().apply {
                 arguments = Bundle().apply {
                     putSerializable("source", source)
                     putSerializable("target", target)
                     putSerializable("transferListOnly", transferListOnly)
+                    putSerializable("filesToCopy", ArrayList<CopyableFile>(filesToCopy))
                 }
             }
     }
