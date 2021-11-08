@@ -4,8 +4,6 @@ import android.content.ContentResolver
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import arrow.core.Either
-import arrow.core.Either.Companion.left
-import arrow.core.Either.Companion.right
 import li.klass.photo_copy.files.ptp.PtpFileProvider
 import li.klass.photo_copy.service.CopyResult
 
@@ -16,8 +14,9 @@ class FileCopier(
 ) {
 
     fun copy(from: CopyableFile, targetDirectory: DocumentFile): Either<CopyResult, DocumentFile> {
-        val targetFile = targetFileCreator.createTargetFileFor(targetDirectory, from, from.targetFileName)
-            ?: return left(CopyResult.TARGET_FILE_CREATION_FAILED)
+        val targetFile =
+            targetFileCreator.createTargetFileFor(targetDirectory, from, from.targetFileName)
+                ?: return Either.Left(CopyResult.TARGET_FILE_CREATION_FAILED)
         return copyToFile(from, targetFile)
     }
 
@@ -27,11 +26,11 @@ class FileCopier(
                 contentResolver.openOutputStream(to.uri).use { targetStream ->
                     targetStream?.write(it)
                 }
-                right(to)
-            } ?: left(CopyResult.COPY_FAILURE)
+                Either.Right(to)
+            } ?: Either.Left(CopyResult.COPY_FAILURE)
         } catch (e: Exception) {
             Log.e(logTag, "could not copy - ${e.message}", e)
-            left(CopyResult.COPY_FAILURE)
+            Either.Left(CopyResult.COPY_FAILURE)
         }
 
     private fun read(file: CopyableFile): ByteArray? =

@@ -6,8 +6,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.exifinterface.media.ExifInterface
 import androidx.preference.PreferenceManager
 import arrow.core.Either
-import arrow.core.Either.Companion.left
-import arrow.core.Either.Companion.right
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.Metadata
@@ -30,19 +28,22 @@ class JpgFromNefExtractor(
         baseDir: DocumentFile
     ): Either<CopyResult, CopyableFile> {
         if (file.extension != "NEF" || !shouldExtractJpeg) {
-            return right(file)
+            return Either.Right(file)
         }
 
         val targetFile: DocumentFile =
-            targetFileCreator.createTargetFileFor(baseDir, file,
+            targetFileCreator.createTargetFileFor(
+                baseDir, file,
                 targetFileName = file.filename + ".JPG",
                 extension = "JPG",
-                mimeType = mimeTypeFor("JPG"))
-                ?: return left(CopyResult.JPG_CREATION_FOR_NEF_FAILED)
+                mimeType = mimeTypeFor("JPG")
+            )
+                ?: return Either.Left(CopyResult.JPG_CREATION_FOR_NEF_FAILED)
 
         return try {
             val contentResolver = context.contentResolver
-            val sourceMetadata = metadataFrom(file.documentFile) ?: return left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
+            val sourceMetadata = metadataFrom(file.documentFile)
+                ?: return Either.Left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
             val (offset, length) = sourceMetadata.let { source ->
                 val directory = source.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
                 val offset = directory.getInt(0x0201)
@@ -59,17 +60,17 @@ class JpgFromNefExtractor(
                 }
             }
 
-            val targetMetadata = exifDataFrom(targetFile) ?: return left(CopyResult.ERROR)
+            val targetMetadata = exifDataFrom(targetFile) ?: return Either.Left(CopyResult.ERROR)
             copyExifData(sourceMetadata, targetMetadata)
 
-            return right(FileSystemFile(targetFile, file.exifData))
+            return Either.Right(FileSystemFile(targetFile, file.exifData))
         } catch (e: Exception) {
             Log.e(
                 Copier.logTag,
                 "extractJpgFromNef(baseDir=${baseDir.name},nef=${file.filename}) - Could not extract jpg from nef",
                 e
             )
-            return left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
+            return Either.Left(CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF)
         }
     }
 

@@ -67,17 +67,23 @@ object PtpConnectionSingleton {
 }
 
 class PtpService {
-    fun getDeviceInformation() =
-        runConnected {
-            Log.i(logTag, "getDeviceInformation()")
-            it.connection.deviceInfo
-        }?.let {
-            DeviceInformation(
-                model = it.mModel.mString,
-                manufacturer = it.mManufacturer.mString,
-                serialNumber = it.mSerialNumber.mString
-            )
+    fun getDeviceInformation(): DeviceInformation? {
+        return try {
+            runConnected {
+                Log.i(logTag, "getDeviceInformation()")
+                it.connection.deviceInfo
+            }?.let {
+                DeviceInformation(
+                    model = it.mModel.mString,
+                    manufacturer = it.mManufacturer.mString,
+                    serialNumber = it.mSerialNumber.mString
+                )
+            }
+        } catch (e: Exception) {
+            Log.i(logTag, "cannot get device information")
+            null
         }
+    }
 
     fun fetchFile(handle: PtpDataType.ObjectHandle) =
         runConnected {

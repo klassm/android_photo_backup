@@ -10,7 +10,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import arrow.core.extensions.list.functorFilter.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -136,7 +135,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 DataVolumesProvider(app).getDataVolumes()
             }
             allVolumes.value = (allVolumes.value ?: emptyList())
-                .filter { it is PtpVolume } + dataVolumes.available
+                .filterIsInstance<PtpVolume>() + dataVolumes.available
             missingExternalDrives.value = dataVolumes.missingExternalDrives
         }
         viewModelScope.launch {

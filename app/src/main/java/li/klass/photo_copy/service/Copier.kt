@@ -6,8 +6,6 @@ import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import arrow.core.Either
-import arrow.core.Either.Companion.left
-import arrow.core.Either.Companion.right
 import arrow.core.computations.either
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -98,9 +96,9 @@ class Copier(
                 "copy(toCopy=${toCopy.filename},newFile=${newFile.name}) - Deleting ${newFile.uri}, md5 hash did not match"
             )
             newFile.delete()
-            return right(CopyResult.INTEGRITY_CHECK_FAILED)
+            return Either.Right(CopyResult.INTEGRITY_CHECK_FAILED)
         }
-        return left(CopyResult.SUCCESS)
+        return Either.Left(CopyResult.SUCCESS)
     }
 
     private val contentResolver: ContentResolver
