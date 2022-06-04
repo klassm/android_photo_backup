@@ -61,7 +61,7 @@ android {
     }
 }
 
-val arrowVersion = "0.12.1"
+val arrowVersion = "1.1.2"
 val roomVersion = "2.4.2"
 
 dependencies {
@@ -79,8 +79,7 @@ dependencies {
     implementation("com.apachat:loadingbutton-android:1.0.11")
     implementation("com.drewnoakes:metadata-extractor:2.18.0")
     implementation("io.arrow-kt:arrow-core:$arrowVersion")
-    implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
-    kapt("io.arrow-kt:arrow-meta:$arrowVersion")
+    kapt("io.arrow-kt:arrow-meta:1.6.0")
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
