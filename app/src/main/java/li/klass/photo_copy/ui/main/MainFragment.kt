@@ -32,7 +32,7 @@ class MainFragment : Fragment() {
     }
 
     private val viewModel: MainViewModel by viewModels()
-    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val treeUri = result.data?.data
         if (result.resultCode == Activity.RESULT_OK && treeUri != null) {
             viewModel.onAccessGranted(treeUri)
