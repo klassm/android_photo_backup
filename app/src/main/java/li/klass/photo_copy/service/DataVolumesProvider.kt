@@ -45,11 +45,14 @@ class DataVolumesProvider(private val context: Context) {
 
     fun findVolumeFor(file: DocumentFile): StorageVolume? {
         val removableVolumes = removableVolumes()
+        val regexp = "/tree/([a-zA-Z0-9-]+)".toRegex()
+
         if(file.uri.path?.startsWith("/tree/primary") == true) {
             return removableVolumes.find { !it.isRemovable }
         }
 
-        return removableVolumes.find { it.uuid == file.name }
+        val volumeUuid = regexp.find(file.uri.path ?: "")?.groups?.get(1)?.value ?: return null
+        return removableVolumes.find { it.uuid == volumeUuid }
     }
 
     private fun removableVolumes() = storageManager.storageVolumes

@@ -11,10 +11,12 @@ import li.klass.photo_copy.model.MountedVolumeStats
 import java.lang.IllegalStateException
 import java.security.MessageDigest
 import java.util.*
+import java.util.function.Predicate
 
-fun DocumentFile.listAllFiles(): List<DocumentFile> =
+fun DocumentFile.listAllFiles(predicate: (file: DocumentFile) -> Boolean = { _ -> true }): List<DocumentFile> =
     listFiles()
-        .flatMap { if (it.isDirectory) it.listAllFiles() else listOf(it) }
+        .filter { it.isDirectory || predicate(it) }
+        .flatMap { if (it.isDirectory) it.listAllFiles(predicate) else listOf(it) }
 
 fun DocumentFile.createDirIfNotExists(dirName: String): DocumentFile {
     return listFiles().find { it.isDirectory && it.name == dirName }
@@ -25,7 +27,7 @@ fun ContentResolver.md5Hash(documentFile: DocumentFile): String {
     val md5 = MessageDigest.getInstance("MD5")
     val bytes: ByteArray = openInputStream(documentFile.uri).use { it?.readBytes() } ?: ByteArray(0)
     md5.update(bytes)
-    return String(md5.digest()).toUpperCase(Locale.getDefault())
+    return String(md5.digest()).uppercase(Locale.getDefault())
 }
 
 fun ContentResolver.volumeStats(documentFile: DocumentFile): MountedVolumeStats {

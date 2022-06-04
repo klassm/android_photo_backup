@@ -23,7 +23,7 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpFil
         return calculateFilesToCopy(targetDirectory, source, transferListOnly)
     }
 
-    fun calculateFilesToCopy(
+    private fun calculateFilesToCopy(
         targetDirectory: DocumentFile?,
         source: FileContainer.SourceContainer,
         transferListOnly: Boolean
@@ -33,9 +33,11 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpFil
             is SourceExternalDrive -> usbService.listFiles(source)
             is SourcePtp -> ptpFileProvider.getFilesFor(transferListOnly)
         }
+        val copyableFileNames = copyableFiles.map { it.targetFileName }.toSet()
 
         Log.i(logTag, "finding existing files")
-        val allTargetFiles = targetDirectory?.listAllFiles() ?: emptyList()
+        val allTargetFiles = targetDirectory?.listAllFiles { file -> copyableFileNames.contains(file.name) }
+            ?: emptyList()
 
         Log.i(logTag, "mapping target file names")
         val allTargetFileNames = allTargetFiles.map { it.name }
@@ -46,9 +48,10 @@ class FilesToCopyProvider(private val usbService: UsbService, private val ptpFil
         Log.i(
             logTag,
             "calculateFilesToCopy - targetDirectory=${targetDirectory?.uri?.path}" +
-                    "\r\ncopyableFiles: " + copyableFiles.joinToString(separator = ",") { it.filename } +
+                    "\r\ncopyableFiles: " + copyableFiles.size +
                     "\r\nexisting files:" + allTargetFileNames.size +
-                    "\r\ntoCopy: " + toCopy.joinToString(separator = ",") { it.filename })
+                    "\r\ntoCopy: " + toCopy.size
+        )
 
         return toCopy
     }

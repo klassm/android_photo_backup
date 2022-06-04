@@ -8,6 +8,7 @@
     </plurals>
 
     <string name="copying_dialog_current_file_index_separator">of</string>
+    <string name="updating_data_volumes">Updating Data Volumes …</string>
 
     <string name="settings_activity_title">Settings</string>
     <string name="settings_verify_md5_hash">Verify MD5 Hash of copied files</string>

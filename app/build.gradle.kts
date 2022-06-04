@@ -24,7 +24,7 @@ apply {
 
 android {
     compileSdk = 31
-    buildToolsVersion = "30.0.2"
+    buildToolsVersion = "30.0.3"
     defaultConfig {
         applicationId = "li.klass.photo_copy"
         minSdk = 29
@@ -62,22 +62,22 @@ android {
 }
 
 val arrowVersion = "0.12.1"
-val roomVersion = "2.3.0"
+val roomVersion = "2.4.2"
 
 dependencies {
     implementation(fileTree("dir" to "libs", "include" to listOf("*.jar")))
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.appcompat:appcompat:1.4.2")
+    implementation("androidx.core:core-ktx:1.8.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
-    implementation("joda-time:joda-time:2.10.13")
-    implementation("androidx.preference:preference:1.1.1")
-    implementation("br.com.simplepass:loading-button-android:2.2.0")
-    implementation("com.drewnoakes:metadata-extractor:2.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.2")
+    implementation("joda-time:joda-time:2.10.14")
+    implementation("androidx.preference:preference:1.2.0")
+    implementation("com.apachat:loadingbutton-android:1.0.11")
+    implementation("com.drewnoakes:metadata-extractor:2.18.0")
     implementation("io.arrow-kt:arrow-core:$arrowVersion")
     implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
     kapt("io.arrow-kt:arrow-meta:$arrowVersion")
@@ -85,13 +85,13 @@ dependencies {
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     implementation("androidx.exifinterface:exifinterface:1.3.3")
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
-    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.core:core-ktx:1.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1")
+    implementation("androidx.fragment:fragment-ktx:1.4.1")
 
     testImplementation("androidx.room:room-testing:$roomVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
-    testImplementation("org.assertj:assertj-core:3.21.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testImplementation("org.assertj:assertj-core:3.23.1")
 }

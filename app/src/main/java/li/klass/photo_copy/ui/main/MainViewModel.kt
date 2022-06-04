@@ -52,6 +52,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: MutableLiveData<String> = MutableLiveData("")
     val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
 
+    val updatingDataVolumes = MutableLiveData(false)
+
     private val database = AppDatabase.getInstance(app)
     private val ptpItemDao: PtpItemDao = database.ptpItemDao()
     private val usbItemExifDataDao: UsbItemExifDataDao = database.usbItemExifDataDao()
@@ -126,6 +128,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .edit().putBoolean(prefDidUserSeeExternalAccessInfoMessage, true).apply()
 
     fun updateDataVolumes() {
+        updatingDataVolumes.value = true
+
         allVolumes.value = null
         selectedSourceDrive.value = null
         selectedTargetDrive.value = null
@@ -139,12 +143,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             missingExternalDrives.value = dataVolumes.missingExternalDrives
         }
         viewModelScope.launch {
-            val ptpVolume = withContext(Dispatchers.IO) {
-                PtpService().getDeviceInformation()?.let { PtpVolume(it) }
-            }
-            ptpVolume?.let { volume ->
-                allVolumes.value = (allVolumes.value ?: emptyList())
-                    .filterNot { it is PtpVolume } + volume
+            try {
+                val ptpVolume = withContext(Dispatchers.IO) {
+                    PtpService().getDeviceInformation()?.let { PtpVolume(it) }
+                }
+                ptpVolume?.let { volume ->
+                    allVolumes.value = (allVolumes.value ?: emptyList())
+                        .filterNot { it is PtpVolume } + volume
+                }
+            } finally {
+                updatingDataVolumes.value = false
             }
         }
     }

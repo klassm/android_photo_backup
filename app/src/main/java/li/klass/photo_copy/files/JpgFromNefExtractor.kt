@@ -40,6 +40,7 @@ class JpgFromNefExtractor(
             )
                 ?: return Either.Left(CopyResult.JPG_CREATION_FOR_NEF_FAILED)
 
+        @Suppress("UNREACHABLE_CODE")
         return try {
             val contentResolver = context.contentResolver
             val sourceMetadata = metadataFrom(file.documentFile)

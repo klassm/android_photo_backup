@@ -35,7 +35,7 @@ sealed class CopyableFile: Serializable {
     abstract val filename: String
     abstract val mimeType: String
     abstract val exifData: ExifData
-    val extension get() = filename.split(".").last().toUpperCase(Locale.getDefault())
+    val extension get() = filename.split(".").last().uppercase(Locale.getDefault())
 
     data class PtpFile(
         override val filename: String,

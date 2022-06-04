@@ -1,22 +1,22 @@
 package li.klass.photo_copy.ui.main
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
 import li.klass.photo_copy.debounce
@@ -32,6 +32,12 @@ class MainFragment : Fragment() {
     }
 
     private val viewModel: MainViewModel by viewModels()
+    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val treeUri = result.data?.data
+        if (result.resultCode == Activity.RESULT_OK && treeUri != null) {
+            viewModel.onAccessGranted(treeUri)
+        }
+    }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -63,16 +69,8 @@ class MainFragment : Fragment() {
         super.onPause()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        data ?: return
-
-        val treeUri: Uri = data.data as Uri
-        viewModel.onAccessGranted(treeUri)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         nullableCombineLatest(
             viewModel.selectedSourceDrive,
@@ -80,12 +78,12 @@ class MainFragment : Fragment() {
         ) { source, target -> source to target }
             .debounce(1000)
             .observe(
-                viewLifecycleOwner,
-                Observer { (source, target) ->
-                    viewModel.handleSourceTargetChange(source, target)
-                })
+                viewLifecycleOwner
+            ) { (source, target) ->
+                viewModel.handleSourceTargetChange(source, target)
+            }
 
-        viewModel.sourceContainers.observe(viewLifecycleOwner, Observer { sources ->
+        viewModel.sourceContainers.observe(viewLifecycleOwner) { sources ->
             context?.let { context ->
                 sourceCard.onItemSelectedListener =
                     spinnerListenerFor(sources, viewModel.selectedSourceDrive)
@@ -98,9 +96,9 @@ class MainFragment : Fragment() {
                     sourceCardEmpty.visibility = View.GONE
                 }
             }
-        })
+        }
 
-        viewModel.targetContainers.observe(viewLifecycleOwner, Observer { targets ->
+        viewModel.targetContainers.observe(viewLifecycleOwner) { targets ->
             context?.let { context ->
                 targetCard.onItemSelectedListener =
                     spinnerListenerFor(targets, viewModel.selectedTargetDrive)
@@ -113,43 +111,48 @@ class MainFragment : Fragment() {
                     targetCardEmpty.visibility = View.GONE
                 }
             }
-        })
+        }
 
-        viewModel.transferListOnly.observe(viewLifecycleOwner, Observer { transferOnly ->
-            transferListOnly.visibility = if(transferOnly == null) View.GONE else View.VISIBLE
+        viewModel.updatingDataVolumes
+            .observe(viewLifecycleOwner) { updating ->
+            updatingDataVolumes.visibility = if (updating) View.VISIBLE else View.GONE
+        }
+
+        viewModel.transferListOnly.observe(viewLifecycleOwner) { transferOnly ->
+            transferListOnly.visibility = if (transferOnly == null) View.GONE else View.VISIBLE
             transferListOnly.isChecked = transferOnly ?: false
-        })
+        }
 
         transferListOnly.setOnCheckedChangeListener { _, isChecked ->
             viewModel.handleTransferListOnlyChange(isChecked)
         }
 
-        viewModel.allVolumes.observe(viewLifecycleOwner, Observer {
+        viewModel.allVolumes.observe(viewLifecycleOwner) {
             if (it != null) {
                 viewModel.handleExternalStorageChange(it)
             }
-        })
+        }
 
-        viewModel.errorMessage.observe(viewLifecycleOwner, Observer {
+        viewModel.errorMessage.observe(viewLifecycleOwner) {
             errorMessage.text = it
-        })
+        }
 
-        viewModel.statusImage.observe(viewLifecycleOwner, Observer { drawable ->
+        viewModel.statusImage.observe(viewLifecycleOwner) { drawable ->
             statusImage.setImageDrawable(context?.let { ContextCompat.getDrawable(it, drawable) })
-        })
+        }
 
         nullableCombineLatest(
             viewModel.startCopyButtonVisible,
             viewModel.filesToCopy
         ) { a, b -> a to b?.size }
-            .observe(viewLifecycleOwner, Observer<Pair<Boolean?, Int?>> { (visible, filesToCopy) ->
+            .observe(viewLifecycleOwner) { (visible, filesToCopy) ->
                 start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
                 if (filesToCopy == null) {
                     start_copying.isEnabled = false
                     start_copying.startAnimation()
                 }
-            })
-        viewModel.filesToCopy.observe(viewLifecycleOwner, Observer {
+            }
+        viewModel.filesToCopy.observe(viewLifecycleOwner) {
             if (it != null) {
                 start_copying.revertAnimation {
                     start_copying.isEnabled = it.isNotEmpty()
@@ -160,14 +163,14 @@ class MainFragment : Fragment() {
                     )
                 }
             }
-        })
+        }
 
         viewModel.missingExternalDrives
-            .observe(viewLifecycleOwner, Observer {missing ->
+            .observe(viewLifecycleOwner) { missing ->
                 if (missing != null && missing.isNotEmpty()) {
                     val requestAccess = {
                         viewModel.accessIntentsFor(missing)
-                            .forEach { startActivityForResult(it, 0) }
+                            .forEach { resultLauncher.launch(it) }
                     }
                     if (viewModel.didUserAlreadySeeExternalDriveAccessInfo()) {
                         requestAccess()
@@ -181,7 +184,7 @@ class MainFragment : Fragment() {
                             .show()
                     }
                 }
-            })
+            }
 
         start_copying.setOnClickListener { startCopying() }
 
