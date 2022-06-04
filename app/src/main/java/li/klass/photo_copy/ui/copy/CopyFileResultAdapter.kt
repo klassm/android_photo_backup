@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.copy_file_result_item.view.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.databinding.CopyFileResultItemBinding
 import li.klass.photo_copy.service.CopyResult
 
 class CopyFileResultAdapter(
@@ -28,19 +28,24 @@ class CopyFileResultAdapter(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = getItem(position)
-        val view = convertView ?: LayoutInflater.from(context).inflate(
-            R.layout.copy_file_result_item,
-            parent,
-            false
+
+        val binding =
+            when (convertView) {
+                null -> CopyFileResultItemBinding.inflate(LayoutInflater.from(context))
+                else -> CopyFileResultItemBinding.bind(convertView)
+            }
+
+        binding.filename.text = item.fileName
+        binding.statusImage.setImageDrawable(
+            ContextCompat.getDrawable(
+                context, when (item.result) {
+                    CopyResult.SUCCESS -> R.drawable.ic_check_green
+                    else -> R.drawable.ic_cross_red
+                }
+            )
         )
 
-        view.filename.text = item.fileName
-        view.statusImage.setImageDrawable(ContextCompat.getDrawable(context, when(item.result) {
-            CopyResult.SUCCESS -> R.drawable.ic_check_green
-            else -> R.drawable.ic_cross_red
-        }))
-
-        val errorMessageStringId = when(item.result) {
+        val errorMessageStringId = when (item.result) {
             CopyResult.SUCCESS -> null
             CopyResult.COPY_FAILURE -> R.string.copy_error_could_not_copy
             CopyResult.INTEGRITY_CHECK_FAILED -> R.string.copy_error_integrity_check_failed
@@ -50,9 +55,9 @@ class CopyFileResultAdapter(
             CopyResult.JPG_COULD_NOT_EXTRACT_JPG_FROM_NEF -> R.string.copy_error_jpg_could_not_extract_jpg_from_nef
             CopyResult.JPG_COULD_NOT_READ_NEF_INPUT_FILE -> R.string.copy_error_jpg_could_not_read_nef_input_file
         }
-        view.errorMessage.visibility = if (errorMessageStringId == null) View.GONE else View.VISIBLE
-        view.errorMessage.text = errorMessageStringId ?.let { context.getString(it) }
+        binding.errorMessage.visibility = if (errorMessageStringId == null) View.GONE else View.VISIBLE
+        binding.errorMessage.text = errorMessageStringId?.let { context.getString(it) }
 
-        return view
+        return binding.root
     }
 }

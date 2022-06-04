@@ -19,12 +19,14 @@ plugins {
 
 apply {
     plugin("de.mannodermaus.android-junit5")
-    plugin("kotlin-android-extensions")
 }
 
 android {
     compileSdk = 31
     buildToolsVersion = "30.0.3"
+    buildFeatures {
+        viewBinding = true
+    }
     defaultConfig {
         applicationId = "li.klass.photo_copy"
         minSdk = 29

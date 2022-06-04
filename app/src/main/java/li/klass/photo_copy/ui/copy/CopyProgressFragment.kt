@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import kotlinx.android.synthetic.main.copying_progress.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.databinding.CopyingProgressBinding
 import li.klass.photo_copy.files.CopyableFile
 import li.klass.photo_copy.model.FileContainer.*
 
 class CopyProgressFragment : Fragment() {
     private val viewModel: CopyProgressViewModel by viewModels()
+    private lateinit var binding: CopyingProgressBinding
 
     @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,31 +30,34 @@ class CopyProgressFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.copying_progress, container, false)
+    ): View {
+        binding = CopyingProgressBinding.inflate(layoutInflater, container, false)
+        return binding.root
+    }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         val copyFileResultAdapter = context?.let { CopyFileResultAdapter(it, emptyList()) }
-        file_progress_list.adapter = copyFileResultAdapter
+        binding.fileProgressList.adapter = copyFileResultAdapter
 
         viewModel.copyProgress.observe(viewLifecycleOwner, Observer { copyProgress ->
             if (copyProgress != null) {
-                progress.setProgress(copyProgress.progress, true)
-                current_file_index.text = copyProgress.currentIndex.toString()
-                total_file_index.text = copyProgress.totalAmount.toString()
-                back.visibility =
+                binding.progress.setProgress(copyProgress.progress, true)
+                binding.currentFileIndex.text = copyProgress.currentIndex.toString()
+                binding.totalFileIndex.text = copyProgress.totalAmount.toString()
+                binding.back.visibility =
                     if (copyProgress.currentIndex == copyProgress.totalAmount) View.VISIBLE else View.GONE
                 copyFileResultAdapter?.objects = copyProgress.results.sortedBy { it.date }.reversed()
-                progress_data.visibility = View.VISIBLE
-                file_progress_list.visibility = View.VISIBLE
+                binding.progressData.visibility = View.VISIBLE
+                binding.fileProgressList.visibility = View.VISIBLE
             } else {
-                back.visibility = View.GONE
-                progress_data.visibility = View.GONE
-                file_progress_list.visibility = View.GONE
+                binding.back.visibility = View.GONE
+                binding.progressData.visibility = View.GONE
+                binding.fileProgressList.visibility = View.GONE
             }
         })
 
-        back.setOnClickListener {
+        binding.back.setOnClickListener {
             activity?.supportFragmentManager?.popBackStackImmediate()
         }
 

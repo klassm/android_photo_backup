@@ -17,8 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import kotlinx.android.synthetic.main.main_fragment.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.databinding.MainFragmentBinding
 import li.klass.photo_copy.debounce
 import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.nullableCombineLatest
@@ -31,6 +31,7 @@ class MainFragment : Fragment() {
         const val RELOAD_SD_CARDS = "reload_sd_cards"
     }
 
+    private lateinit var binding: MainFragmentBinding
     private val viewModel: MainViewModel by viewModels()
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val treeUri = result.data?.data
@@ -54,7 +55,8 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+        binding = MainFragmentBinding.inflate(layoutInflater)
+        return binding.root
     }
 
     override fun onResume() {
@@ -85,45 +87,45 @@ class MainFragment : Fragment() {
 
         viewModel.sourceContainers.observe(viewLifecycleOwner) { sources ->
             context?.let { context ->
-                sourceCard.onItemSelectedListener =
+                binding.sourceCard.onItemSelectedListener =
                     spinnerListenerFor(sources, viewModel.selectedSourceDrive)
-                sourceCard.adapter = ExternalDriveAdapter(context, sources)
+                binding.sourceCard.adapter = ExternalDriveAdapter(context, sources)
                 if (sources.isEmpty()) {
-                    sourceCard.visibility = View.GONE
-                    sourceCardEmpty.visibility = View.VISIBLE
+                    binding.sourceCard.visibility = View.GONE
+                    binding.sourceCardEmpty.visibility = View.VISIBLE
                 } else {
-                    sourceCard.visibility = View.VISIBLE
-                    sourceCardEmpty.visibility = View.GONE
+                    binding.sourceCard.visibility = View.VISIBLE
+                    binding.sourceCardEmpty.visibility = View.GONE
                 }
             }
         }
 
         viewModel.targetContainers.observe(viewLifecycleOwner) { targets ->
             context?.let { context ->
-                targetCard.onItemSelectedListener =
+                binding.targetCard.onItemSelectedListener =
                     spinnerListenerFor(targets, viewModel.selectedTargetDrive)
-                targetCard.adapter = ExternalDriveAdapter(context, targets)
+                binding.targetCard.adapter = ExternalDriveAdapter(context, targets)
                 if (targets.isEmpty()) {
-                    targetCard.visibility = View.GONE
-                    targetCardEmpty.visibility = View.VISIBLE
+                    binding.targetCard.visibility = View.GONE
+                    binding.targetCardEmpty.visibility = View.VISIBLE
                 } else {
-                    targetCard.visibility = View.VISIBLE
-                    targetCardEmpty.visibility = View.GONE
+                    binding.targetCard.visibility = View.VISIBLE
+                    binding.targetCardEmpty.visibility = View.GONE
                 }
             }
         }
 
         viewModel.updatingDataVolumes
             .observe(viewLifecycleOwner) { updating ->
-            updatingDataVolumes.visibility = if (updating) View.VISIBLE else View.GONE
+            binding.updatingDataVolumes.visibility = if (updating) View.VISIBLE else View.GONE
         }
 
         viewModel.transferListOnly.observe(viewLifecycleOwner) { transferOnly ->
-            transferListOnly.visibility = if (transferOnly == null) View.GONE else View.VISIBLE
-            transferListOnly.isChecked = transferOnly ?: false
+            binding.transferListOnly.visibility = if (transferOnly == null) View.GONE else View.VISIBLE
+            binding.transferListOnly.isChecked = transferOnly ?: false
         }
 
-        transferListOnly.setOnCheckedChangeListener { _, isChecked ->
+        binding.transferListOnly.setOnCheckedChangeListener { _, isChecked ->
             viewModel.handleTransferListOnlyChange(isChecked)
         }
 
@@ -134,11 +136,11 @@ class MainFragment : Fragment() {
         }
 
         viewModel.errorMessage.observe(viewLifecycleOwner) {
-            errorMessage.text = it
+            binding.errorMessage.text = it
         }
 
         viewModel.statusImage.observe(viewLifecycleOwner) { drawable ->
-            statusImage.setImageDrawable(context?.let { ContextCompat.getDrawable(it, drawable) })
+            binding.statusImage.setImageDrawable(context?.let { ContextCompat.getDrawable(it, drawable) })
         }
 
         nullableCombineLatest(
@@ -146,17 +148,17 @@ class MainFragment : Fragment() {
             viewModel.filesToCopy
         ) { a, b -> a to b?.size }
             .observe(viewLifecycleOwner) { (visible, filesToCopy) ->
-                start_copying.visibility = if (visible == true) View.VISIBLE else View.GONE
+                binding.startCopying.visibility = if (visible == true) View.VISIBLE else View.GONE
                 if (filesToCopy == null) {
-                    start_copying.isEnabled = false
-                    start_copying.startAnimation()
+                    binding.startCopying.isEnabled = false
+                    binding.startCopying.startAnimation()
                 }
             }
         viewModel.filesToCopy.observe(viewLifecycleOwner) {
             if (it != null) {
-                start_copying.revertAnimation {
-                    start_copying.isEnabled = it.isNotEmpty()
-                    start_copying.text = resources.getQuantityString(
+                binding.startCopying.revertAnimation {
+                    binding.startCopying.isEnabled = it.isNotEmpty()
+                    binding.startCopying.text = resources.getQuantityString(
                         R.plurals.start_copying,
                         it.size,
                         it.size
@@ -186,7 +188,7 @@ class MainFragment : Fragment() {
                 }
             }
 
-        start_copying.setOnClickListener { startCopying() }
+        binding.startCopying.setOnClickListener { startCopying() }
 
         viewModel.updateDataVolumes()
     }

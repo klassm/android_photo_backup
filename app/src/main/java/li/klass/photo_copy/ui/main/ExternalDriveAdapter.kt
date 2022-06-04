@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import kotlinx.android.synthetic.main.external_drive_dropdown_item.view.*
 import li.klass.photo_copy.R
+import li.klass.photo_copy.databinding.ExternalDriveDropdownItemBinding
 import li.klass.photo_copy.model.ExternalVolume
 import li.klass.photo_copy.model.FileContainer
 import li.klass.photo_copy.model.FileContainer.SourceContainer.SourcePtp
@@ -23,17 +23,16 @@ class ExternalDriveAdapter<T : FileContainer>(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = getItem(position)
-        val view = convertView ?: LayoutInflater.from(context).inflate(
-            R.layout.external_drive_dropdown_item,
-            parent,
-            false
-        )
+        val binding = when {
+            convertView != null -> ExternalDriveDropdownItemBinding.bind(convertView)
+            else -> ExternalDriveDropdownItemBinding.inflate(LayoutInflater.from(context), parent, false)
+        }
 
-        view.name.text = textFor(item)
-        view.space.text = spaceTextFor(item)
-        view.tag = item
+        binding.name.text = textFor(item)
+        binding.space.text = spaceTextFor(item)
+        binding.root.tag = item
 
-        return view
+        return binding.root
     }
 
     private fun textFor(item: T): String = when (item) {
