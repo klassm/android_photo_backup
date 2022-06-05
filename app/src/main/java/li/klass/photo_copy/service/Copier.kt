@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import arrow.core.Either
-import arrow.core.computations.either
+import arrow.core.continuations.either
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import li.klass.photo_copy.Constants.prefVerifyMd5HashOfCopiedFiles
