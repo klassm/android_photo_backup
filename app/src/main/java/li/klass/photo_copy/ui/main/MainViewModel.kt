@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.storage.StorageVolume
 import android.util.Log
+import android.util.Log.INFO
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -34,7 +35,7 @@ import li.klass.photo_copy.model.FileContainer.TargetContainer
 import li.klass.photo_copy.service.DataVolumesProvider
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    val allVolumes: MutableLiveData<List<DataVolume>> = MutableLiveData(emptyList())
+    private val allVolumes: MutableLiveData<List<DataVolume>> = MutableLiveData(emptyList())
     val missingExternalDrives: MutableLiveData<List<StorageVolume>> = MutableLiveData(emptyList())
 
     val selectedSourceDrive: MutableLiveData<SourceContainer?> = MutableLiveData()
@@ -49,34 +50,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val filesToCopy: MutableLiveData<Collection<CopyableFile>?> = MutableLiveData(null)
     val transferListOnly: MutableLiveData<Boolean?> = MutableLiveData(null)
 
-    val errorMessage: MutableLiveData<String> = MutableLiveData("")
-    val statusImage: MutableLiveData<Int> = MutableLiveData(R.drawable.ic_cross_red)
-
-    val updatingDataVolumes = MutableLiveData(false)
+    val status: MutableLiveData<ViewStatus?> = MutableLiveData(null)
 
     private val database = AppDatabase.getInstance(app)
     private val ptpItemDao: PtpItemDao = database.ptpItemDao()
     private val usbItemExifDataDao: UsbItemExifDataDao = database.usbItemExifDataDao()
 
-    private fun updateImageAndErrorMessage() {
-        if (allVolumes.value.isNullOrEmpty()) {
-            statusImage.value = R.drawable.ic_cross_red
-            errorMessage.value = app.getString(R.string.no_external_drives_cards)
-            return
+    private fun updateStatusBasedOnVolumes() {
+        val calculatedStatus= when {
+            allVolumes.value.isNullOrEmpty() -> ViewStatus.NO_DRIVES
+            selectedSourceDrive.value == null || selectedTargetDrive.value == null -> ViewStatus.INPUT_REQUIRED
+            else -> ViewStatus.READY
         }
+        Log.i(logTag, "setting status to $calculatedStatus")
+        status.value = calculatedStatus
 
-        if (selectedSourceDrive.value == null || selectedTargetDrive.value == null) {
-            statusImage.value = R.drawable.ic_question_answer_blue
-            errorMessage.value = app.getString(R.string.no_source_or_target)
-            return
-        }
-
-        errorMessage.value = ""
-        statusImage.value = R.drawable.ic_check_green
     }
 
     fun handleSourceTargetChange(source: SourceContainer?, target: TargetContainer?) {
-        transferListOnly.value = if (source != null && source is SourceContainer.SourcePtp) true else null
+        if (status.value == ViewStatus.RELOADING_VOLUMES) {
+            return
+        }
+        transferListOnly.value =
+            if (source != null && source is SourceContainer.SourcePtp) true else null
+
+        updateStatusBasedOnVolumes()
         updateFilesToCopy(source, target)
     }
 
@@ -86,7 +84,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     @Synchronized
-    private fun updateFilesToCopy(source: SourceContainer?, target: TargetContainer?, transferListOnly: Boolean = true) {
+    private fun updateFilesToCopy(
+        source: SourceContainer?,
+        target: TargetContainer?,
+        transferListOnly: Boolean = true
+    ) {
         Log.i(logTag, "handleSourceTargetChange(source=$source, target=$target)")
 
         val canCopy = source != null && target != null
@@ -97,18 +99,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 filesToCopy.value =
                     withContext(Dispatchers.IO) {
-                        val usbService = UsbService(FileSystemFileCreator(FileSystemExifDataProvider(app.contentResolver), usbItemExifDataDao))
+                        val usbService = UsbService(
+                            FileSystemFileCreator(
+                                FileSystemExifDataProvider(app.contentResolver),
+                                usbItemExifDataDao
+                            )
+                        )
                         FilesToCopyProvider(usbService, PtpFileProvider(PtpService(), ptpItemDao))
                             .calculateFilesToCopy(target!!, source!!, transferListOnly)
                     }
             }
         }
-
-        updateImageAndErrorMessage()
     }
 
-    fun handleExternalStorageChange(volumes: List<DataVolume>) {
-        val sortedVolumes = volumes.sortedWith(
+    private fun updateSourceAndTargetContainers() {
+        val allVolumes = allVolumes.value ?: emptyList()
+        val sortedVolumes = allVolumes.sortedWith(
             compareBy({ it is PtpVolume }, { it is MountedVolume && it.volume.isRemovable })
         ).reversed()
         val result = ExternalDriveDocumentDivider(
@@ -116,7 +122,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ).divide(sortedVolumes)
         sourceContainers.value = result.filterIsInstance<SourceContainer>()
         targetContainers.value = result.filterIsInstance<TargetContainer>()
-        updateImageAndErrorMessage()
+        updateStatusBasedOnVolumes()
     }
 
     fun didUserAlreadySeeExternalDriveAccessInfo(): Boolean =
@@ -128,13 +134,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .edit().putBoolean(prefDidUserSeeExternalAccessInfoMessage, true).apply()
 
     fun updateDataVolumes() {
-        updatingDataVolumes.value = true
-
+        status.value = ViewStatus.RELOADING_VOLUMES
         allVolumes.value = null
         selectedSourceDrive.value = null
         selectedTargetDrive.value = null
+        filesToCopy.value = null
+        startCopyButtonVisible.value = false
 
-        viewModelScope.launch {
+        val updateVolumesJob = viewModelScope.launch {
             val dataVolumes = withContext(Dispatchers.IO) {
                 DataVolumesProvider(app).getDataVolumes()
             }
@@ -142,18 +149,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .filterIsInstance<PtpVolume>() + dataVolumes.available
             missingExternalDrives.value = dataVolumes.missingExternalDrives
         }
-        viewModelScope.launch {
-            try {
-                val ptpVolume = withContext(Dispatchers.IO) {
-                    PtpService().getDeviceInformation()?.let { PtpVolume(it) }
-                }
-                ptpVolume?.let { volume ->
-                    allVolumes.value = (allVolumes.value ?: emptyList())
-                        .filterNot { it is PtpVolume } + volume
-                }
-            } finally {
-                updatingDataVolumes.value = false
+        val updatePtpJob = viewModelScope.launch {
+            val ptpVolume = withContext(Dispatchers.IO) {
+                PtpService().getDeviceInformation()?.let { PtpVolume(it) }
             }
+            ptpVolume?.let { volume ->
+                allVolumes.value = (allVolumes.value ?: emptyList())
+                    .filterNot { it is PtpVolume } + volume
+            }
+        }
+
+        viewModelScope.launch {
+            updateVolumesJob.join()
+            updatePtpJob.join()
+            updateSourceAndTargetContainers()
         }
     }
 

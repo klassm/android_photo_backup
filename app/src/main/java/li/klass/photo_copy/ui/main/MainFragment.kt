@@ -13,7 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -61,6 +60,7 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.updateDataVolumes()
         activity?.registerReceiver(broadcastReceiver, IntentFilter().apply {
             addAction(RELOAD_SD_CARDS)
         })
@@ -115,10 +115,6 @@ class MainFragment : Fragment() {
             }
         }
 
-        viewModel.updatingDataVolumes
-            .observe(viewLifecycleOwner) { updating ->
-            binding.updatingDataVolumes.visibility = if (updating) View.VISIBLE else View.GONE
-        }
 
         viewModel.transferListOnly.observe(viewLifecycleOwner) { transferOnly ->
             binding.transferListOnly.visibility = if (transferOnly == null) View.GONE else View.VISIBLE
@@ -129,18 +125,8 @@ class MainFragment : Fragment() {
             viewModel.handleTransferListOnlyChange(isChecked)
         }
 
-        viewModel.allVolumes.observe(viewLifecycleOwner) {
-            if (it != null) {
-                viewModel.handleExternalStorageChange(it)
-            }
-        }
-
-        viewModel.errorMessage.observe(viewLifecycleOwner) {
-            binding.errorMessage.text = it
-        }
-
-        viewModel.statusImage.observe(viewLifecycleOwner) { drawable ->
-            binding.statusImage.setImageDrawable(context?.let { ContextCompat.getDrawable(it, drawable) })
+        viewModel.status.observe(viewLifecycleOwner) {
+            updateImageAndErrorMessage(it)
         }
 
         nullableCombineLatest(
@@ -219,6 +205,30 @@ class MainFragment : Fragment() {
             ?.replace(R.id.container, CopyProgressFragment.newInstance(source, target, transferListOnly, viewModel.filesToCopy.value ?: emptyList()))
             ?.addToBackStack(null)
             ?.commit()
+    }
+
+    private fun updateImageAndErrorMessage(status: ViewStatus?) {
+        when (status) {
+            ViewStatus.NO_DRIVES, null -> {
+                binding.statusImage.setImageResource(R.drawable.ic_cross_red)
+                binding.errorMessage.text = getString(R.string.no_external_drives_cards)
+                return
+            }
+            ViewStatus.INPUT_REQUIRED -> {
+                binding.statusImage.setImageResource(R.drawable.ic_question_answer_blue)
+                binding.errorMessage.text = getString(R.string.no_source_or_target)
+                return
+            }
+            ViewStatus.RELOADING_VOLUMES -> {
+                binding.statusImage.setImageResource(R.drawable.ic_loading)
+                binding.errorMessage.text = getString(R.string.updating_data_volumes)
+                return
+            }
+            else -> {
+                binding.errorMessage.text = ""
+                binding.statusImage.setImageResource(R.drawable.ic_check_green)
+            }
+        }
     }
 }
 
